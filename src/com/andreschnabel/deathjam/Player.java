@@ -65,7 +65,7 @@ public class Player {
 		if(inertia.y >= MAX_MOV_SPEED) inertia.y = MAX_MOV_SPEED;
 	}
 
-	private final float RECT_MINIFICATION_FACTOR = 0.9f;
+	private final float RECT_MINIFICATION_FACTOR = 0.85f;
 
 	private void minificateRect(Rectangle rect) {
 		rect.x += (1 - RECT_MINIFICATION_FACTOR) * rect.width;
