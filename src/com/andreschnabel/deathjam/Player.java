@@ -2,6 +2,7 @@ package com.andreschnabel.deathjam;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -83,7 +84,7 @@ public class Player {
 
 		if(world.inTile(playerRect)) {
 			playerSpr.setX(playerSpr.getX()-inertia.x);
-			playerSpr.setY(playerSpr.getY()-inertia.y);
+			playerSpr.setY(playerSpr.getY() - inertia.y);
 			inertia.x *= -0.7f;
 			inertia.y *= -0.7f;
 			Utils.playSound(hitSound);
@@ -113,6 +114,7 @@ public class Player {
 
 	public void kill() {
 		if(alive) {
+			playerSpr.setColor(Color.RED);
 			alive = false;
 			world.loadFromFile("deathworld1.txt", true);
 			playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
@@ -126,9 +128,10 @@ public class Player {
 
 	public void revive() {
 		alive = true;
-		world.loadFromFile("world1.txt", true);
+		world.loadFromFile("world1.txt", false);
 		playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
 		inertia.set(0.0f, 0.0f);
+		playerSpr.setColor(Color.WHITE);
 	}
 
 	public float getMaxInertia() {

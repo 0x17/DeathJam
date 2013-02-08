@@ -1,0 +1,117 @@
+
+atlas.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+back
+  rotate: false
+  xy: 1, 43
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+floor
+  rotate: false
+  xy: 67, 43
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+tile1
+  rotate: false
+  xy: 133, 43
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+tile2
+  rotate: false
+  xy: 199, 43
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+tile3
+  rotate: false
+  xy: 265, 43
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+tile4
+  rotate: false
+  xy: 331, 43
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+tile5
+  rotate: false
+  xy: 397, 43
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+tile6
+  rotate: false
+  xy: 463, 43
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+tile7
+  rotate: false
+  xy: 529, 43
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+player1
+  rotate: false
+  xy: 1, 1
+  size: 40, 40
+  orig: 40, 40
+  offset: 0, 0
+  index: -1
+player2
+  rotate: false
+  xy: 595, 67
+  size: 40, 40
+  orig: 40, 40
+  offset: 0, 0
+  index: -1
+player3
+  rotate: false
+  xy: 43, 1
+  size: 40, 40
+  orig: 40, 40
+  offset: 0, 0
+  index: -1
+player4
+  rotate: false
+  xy: 637, 67
+  size: 40, 40
+  orig: 40, 40
+  offset: 0, 0
+  index: -1
+shield
+  rotate: false
+  xy: 85, 1
+  size: 40, 40
+  orig: 40, 40
+  offset: 0, 0
+  index: -1
+coin
+  rotate: false
+  xy: 679, 75
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+enemy
+  rotate: false
+  xy: 127, 15
+  size: 30, 26
+  orig: 30, 26
+  offset: 0, 0
+  index: -1

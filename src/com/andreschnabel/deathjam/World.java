@@ -112,6 +112,7 @@ public class World {
 		charToRegionMap.put('C', 3);
 		charToRegionMap.put('X', 4);
 		charToRegionMap.put('Y', 5);
+		charToRegionMap.put('Z', 6);
 	}
 
 	public void loadFromFile(String filename, boolean deathWorld) {
@@ -131,7 +132,7 @@ public class World {
 		int xCounter, yCounter;
 		xCounter = yCounter = 0;
 		for(int j=0; j<lines.length; j++) {
-			String line = lines[j /*lines.length-j-1*/];
+			String line = lines[lines.length-j-1];
 
 			for(int i=0; i<line.length(); i++) {
 				char c = line.charAt(i);
