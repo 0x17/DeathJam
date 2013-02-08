@@ -43,7 +43,7 @@ public class World {
 	private TextureRegion floorRegion;
 	private boolean inDeathWorld;
 	private Color brightRed = new Color(1.0f, 0.4f, 0.4f, 1.0f);
-	private final Sound coindSound;
+	private final Sound coinSnd;
 	private final Music aliveLoop;
 	private final Music deadLoop;
 
@@ -69,7 +69,7 @@ public class World {
 
 		sb = new SpriteBatch();
 
-		coindSound = Gdx.audio.newSound(Utils.assetHandle("coin.wav"));
+		coinSnd = Gdx.audio.newSound(Utils.assetHandle("coin.wav"));
 	}
 
 	private void setupGridCache() {
@@ -100,7 +100,7 @@ public class World {
 	public void dispose() {
 		deadLoop.dispose();
 		aliveLoop.dispose();
-		coindSound.dispose();
+		coinSnd.dispose();
 		sc.dispose();
 	}
 
@@ -169,10 +169,10 @@ public class World {
 
 		if(inDeathWorld) {
 			aliveLoop.stop();
-			deadLoop.play();
+			Utils.playSong(deadLoop);
 		} else {
 			deadLoop.stop();
-			aliveLoop.play();
+			Utils.playSong(aliveLoop);
 		}
 	}
 
@@ -257,7 +257,7 @@ public class World {
 			if(Intersector.overlapRectangles(coinRect, playerRect)) {
 				toDel.add(coinRect);
 				collectedAmount += COIN_VALUE;
-				coindSound.play();
+				Utils.playSound(coinSnd);
 			}
 		}
 		coinRects.removeAll(toDel);

@@ -86,7 +86,7 @@ public class Player {
 			playerSpr.setY(playerSpr.getY()-inertia.y);
 			inertia.x *= -0.7f;
 			inertia.y *= -0.7f;
-			hitSound.play();
+			Utils.playSound(hitSound);
 
 			if(world.inTileOfType(playerRect, 'X')) {
 				kill();
@@ -117,10 +117,10 @@ public class Player {
 			world.loadFromFile("deathworld1.txt", true);
 			playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
 			inertia.set(0.0f, 0.0f);
-			dwSound.play();
+			Utils.playSound(dwSound);
 		} else {
 			gameover = true;
-			goSound.play();
+			Utils.playSound(goSound);
 		}
 	}
 
