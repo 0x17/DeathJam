@@ -6,8 +6,8 @@ import com.badlogic.gdx.math.Rectangle;
 public class Scroller {
 
 	private static final float SCROLL_SPEED = 5.0f;
-	private final float SCROLL_WINDOW_HORIZONTAL = Globals.SCR_W / 2.1f;
-	private final float SCROLL_WINDOW_VERTICAL = Globals.SCR_H / 2.1f;
+	private final float SCROLL_WINDOW_HORIZONTAL = Globals.VSCR_W / 2.1f;
+	private final float SCROLL_WINDOW_VERTICAL = Globals.VSCR_H / 2.1f;
 	private final World world;
 	private final Player player;
 
@@ -16,14 +16,15 @@ public class Scroller {
 	public OrthographicCamera cam;
 
 	public Scroller(World world, Player player) {
-		cam = new OrthographicCamera(Globals.SCR_W, Globals.SCR_H);
+		cam = new OrthographicCamera(Globals.VSCR_W, Globals.VSCR_H);
 		this.world = world;
 		this.player = player;
 	}
 
 	public void updateCamera() {
-		cam.position.set(xOffset, yOffset, 0.0f);
+		cam.position.set(xOffset*2, yOffset*2, 0.0f);
 		cam.update();
+		cam.view.scale(2.0f, 2.0f, 1.0f);
 	}
 
 	public void scroll(float dx, float dy) {
@@ -45,13 +46,13 @@ public class Scroller {
 			scroll(-scrollSpeed, 0);
 		}
 
-		if(Globals.SCR_W - playerScrX <= SCROLL_WINDOW_HORIZONTAL) {
-			float scrollSpeed = determineScrollSpeed(playerScrX + playerRect.width < Globals.SCR_W);
+		if(Globals.VSCR_W - playerScrX <= SCROLL_WINDOW_HORIZONTAL) {
+			float scrollSpeed = determineScrollSpeed(playerScrX + playerRect.width < Globals.VSCR_W);
 			scroll(scrollSpeed, 0);
 		}
 
-		if(Globals.SCR_H - playerScrY <= SCROLL_WINDOW_VERTICAL) {
-			float scrollSpeed = determineScrollSpeed(playerScrY + playerRect.height < Globals.SCR_H);
+		if(Globals.VSCR_H - playerScrY <= SCROLL_WINDOW_VERTICAL) {
+			float scrollSpeed = determineScrollSpeed(playerScrY + playerRect.height < Globals.VSCR_H);
 			scroll(0, scrollSpeed);
 		}
 

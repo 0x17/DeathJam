@@ -8,7 +8,7 @@ import java.io.File;
 public class Launcher {
 	public static void main(String[] args) {
 		updateAtlas();
-		new LwjglApplication(new DeathGame(), "DEATH", 640, 480, false);
+		new LwjglApplication(new DeathGame(), "DEATH", Globals.PSCR_W, Globals.PSCR_H, false);
 	}
 
 	private static void updateAtlas() {

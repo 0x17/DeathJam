@@ -38,6 +38,8 @@ public class World {
 	private int cacheId;
 	private final SpriteBatch sb;
 
+	private TextureRegion floorRegion;
+
 	public World() {
 		initCharToRegionMap();
 
@@ -49,9 +51,9 @@ public class World {
 		coinRegion = Globals.atlas.findRegion("coin");
 		enemyRegion = Globals.atlas.findRegion("enemy");
 
-		loadFromFile("world1.txt");
+		floorRegion = Globals.atlas.findRegion("floor");
 
-		setupGridCache();
+		loadFromFile("world1.txt");
 
 		sb = new SpriteBatch();
 
@@ -65,10 +67,14 @@ public class World {
 		for(int y=0; y<gridH; y++) {
 			for(int x=0; x<gridW; x++) {
 				char c = grid[y][x];
+				float xpos = x * TILE_W;
+				float ypos = y * TILE_H;
 				if(c != ' ') {
 					int regionIndex = charToRegionMap.get(c);
 					TextureRegion region = tileRegions.get(regionIndex);
-					sc.add(region, x * TILE_W, y * TILE_H);
+					sc.add(region, xpos, ypos);
+				} else {
+					sc.add(floorRegion, xpos, ypos);
 				}
 			}
 		}
@@ -139,6 +145,8 @@ public class World {
 			xCounter = 0;
 			yCounter++;
 		}
+
+		setupGridCache();
 	}
 
 	private void fillWhitespace() {

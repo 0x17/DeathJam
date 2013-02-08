@@ -8,11 +8,14 @@ import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.SpriteCache;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Rectangle;
 
 public class DeathGame implements ApplicationListener {
+	private SpriteCache backCache;
+	private int backCacheId;
 	private SpriteBatch sb, fsb;
 	private BitmapFont smallFont, bigFont;
 
@@ -25,6 +28,8 @@ public class DeathGame implements ApplicationListener {
 		sb = new SpriteBatch();
 		fsb = new SpriteBatch();
 
+		initBackground();
+
 		initFonts();
 
 		float lum = 0.3f;
@@ -33,6 +38,19 @@ public class DeathGame implements ApplicationListener {
 		world = new World();
 		player = new Player(world);
 		scroller = new Scroller(world, player);
+	}
+
+	private void initBackground() {
+		backCache = new SpriteCache();
+		backCache.beginCache();
+
+		TextureRegion backRegion = Globals.atlas.findRegion("back");
+
+		for(int y=0; y<Globals.PSCR_H; y+=backRegion.getRegionWidth())
+			for(int x=0; x<Globals.PSCR_W; x+=backRegion.getRegionWidth())
+				backCache.add(backRegion, x, y);
+
+		backCacheId = backCache.endCache();
 	}
 
 	private void initFonts() {
@@ -87,29 +105,36 @@ public class DeathGame implements ApplicationListener {
 		}
 	}
 
-	private boolean playerInTile(Rectangle playerRect) {
-		return world.inTile(playerRect);
-	}
-
 	private void renderScene() {
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+
+		backCache.begin();
+		backCache.draw(backCacheId);
+		backCache.end();
 
 		Matrix4 mviewmx = scroller.cam.view;
 		
 		world.render(mviewmx);
+		renderPlayer(mviewmx);
 
+		renderTextOverlay();
+	}
+
+	private void renderPlayer(Matrix4 mviewmx) {
 		sb.setTransformMatrix(mviewmx);
 		sb.begin();
 		player.draw(sb);
 		sb.end();
+	}
 
+	private void renderTextOverlay() {
 		fsb.begin();
 		String curStr = player.alive ? "ALIVE" : "DEAD";
 		TextBounds txtBounds = bigFont.getBounds(curStr);
 		bigFont.setColor(Color.WHITE);
-		bigFont.draw(fsb, "Score " + player.score, 10, Globals.SCR_H - txtBounds.height);
+		bigFont.draw(fsb, "Score " + player.score, 10, Globals.PSCR_H - txtBounds.height);
 		bigFont.setColor(player.alive ? Color.GREEN : Color.RED);
-		bigFont.draw(fsb, curStr, Globals.SCR_W - txtBounds.width, txtBounds.height + 10);
+		bigFont.draw(fsb, curStr, Globals.PSCR_W - txtBounds.width, txtBounds.height + 10);
 		fsb.end();
 	}
 
