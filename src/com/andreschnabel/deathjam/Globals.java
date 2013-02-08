@@ -9,7 +9,7 @@ public class Globals {
 	public final static int PSCR_W = 1280;
 	public final static int PSCR_H = 720;
 
-	public final static boolean NO_SOUND = true;
+	public final static boolean NO_SOUND = false;
 
 	public static TextureAtlas atlas;
 
