@@ -1,5 +1,7 @@
 package com.andreschnabel.deathjam;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -14,8 +16,9 @@ import java.util.List;
 
 public class Player {
 
-	private static final float MOV_SPEED = 5.0f;
+	private static final float MOV_SPEED = 2f;
 	private static final float MAX_MOV_SPEED = 20.0f;
+	private static final float INERTIA_DECAY = 0.9f;
 
 	public Vector2 inertia = Vector2.Zero.cpy();
 
@@ -26,6 +29,9 @@ public class Player {
 	public boolean alive = true;
 	public int score;
 	public boolean gameover;
+	private final Sound dwSound;
+	private final Sound hitSound;
+	private final Sound goSound;
 
 	public Player(World world) {
 		this.world = world;
@@ -37,6 +43,16 @@ public class Player {
 		}
 		playerSpr = new Sprite(playerRegions.get(0));
 		playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
+
+		dwSound = Gdx.audio.newSound(Utils.assetHandle("deathworld.wav"));
+		hitSound = Gdx.audio.newSound(Utils.assetHandle("hit.wav"));
+		goSound = Gdx.audio.newSound(Utils.assetHandle("gameover.wav"));
+	}
+
+	public void dispose() {
+		goSound.dispose();
+		hitSound.dispose();
+		dwSound.dispose();
 	}
 
 	public void move(float dx, float dy) {
@@ -69,8 +85,9 @@ public class Player {
 		if(world.inTile(playerRect)) {
 			playerSpr.setX(playerSpr.getX()-inertia.x);
 			playerSpr.setY(playerSpr.getY()-inertia.y);
-			inertia.x *= -1.0f;
-			inertia.y *= -1.0f;
+			inertia.x *= -0.7f;
+			inertia.y *= -0.7f;
+			hitSound.play();
 
 			if(world.inTileOfType(playerRect, 'X')) {
 				kill();
@@ -101,8 +118,10 @@ public class Player {
 			world.loadFromFile("deathworld1.txt", true);
 			playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
 			inertia.set(0.0f, 0.0f);
+			dwSound.play();
 		} else {
 			gameover = true;
+			goSound.play();
 		}
 	}
 
@@ -119,8 +138,8 @@ public class Player {
 
 	public void updateInertia() {
 		//float delta = Gdx.graphics.getDeltaTime();
-		inertia.x *= 0.85f;
-		inertia.y *= 0.85f;
+		inertia.x *= INERTIA_DECAY;
+		inertia.y *= INERTIA_DECAY;
 
 		playerSpr.setRotation((float) (MathUtils.radiansToDegrees * Math.atan2(inertia.y, inertia.x)));
 

@@ -72,6 +72,7 @@ public class DeathGame implements ApplicationListener {
 		hugeFont.dispose();
 		sb.dispose();
 		world.dispose();
+		player.dispose();
 		Globals.atlas.dispose();
 	}
 

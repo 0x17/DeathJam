@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 public class Scroller {
 
-	private static final float SCROLL_SPEED = 5.0f;
+	private static final float SCROLL_SPEED = 8.0f;
 	private final float SCROLL_WINDOW_HORIZONTAL = Globals.VSCR_W / 2.1f;
 	private final float SCROLL_WINDOW_VERTICAL = Globals.VSCR_H / 2.1f;
 	private final World world;
@@ -23,7 +23,7 @@ public class Scroller {
 
 	public void updateCamera() {
 		float maxInertia = player.getMaxInertia();
-		float zoomFactor = 2.0f - 0.25f * (maxInertia / 20.0f);
+		float zoomFactor = 2.0f - 0.25f * (maxInertia / 30.0f);
 
 		cam.position.set(xOffset* zoomFactor, yOffset* zoomFactor, 0.0f);
 		cam.update();
@@ -36,7 +36,7 @@ public class Scroller {
 	}
 
 	private float determineScrollSpeed(boolean inFrame) {
-		return inFrame ? SCROLL_SPEED : SCROLL_SPEED * 2;
+		return inFrame ? SCROLL_SPEED : SCROLL_SPEED * 4;
 	}
 
 	public void updateScrolling() {

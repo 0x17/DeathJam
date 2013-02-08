@@ -1,5 +1,8 @@
 package com.andreschnabel.deathjam;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.SpriteCache;
@@ -41,6 +44,9 @@ public class World {
 	private TextureRegion floorRegion;
 	private boolean inDeathWorld;
 	private Color brightRed = new Color(1.0f, 0.4f, 0.4f, 1.0f);
+	private final Sound coindSound;
+	private final Music aliveLoop;
+	private final Music deadLoop;
 
 	public World() {
 		initCharToRegionMap();
@@ -55,10 +61,14 @@ public class World {
 
 		floorRegion = Globals.atlas.findRegion("floor");
 
+		deadLoop = Gdx.audio.newMusic(Utils.assetHandle("deadloop.mp3"));
+		aliveLoop = Gdx.audio.newMusic(Utils.assetHandle("aliveloop.mp3"));
+
 		loadFromFile("world1.txt", false);
 
 		sb = new SpriteBatch();
 
+		coindSound = Gdx.audio.newSound(Utils.assetHandle("coin.wav"));
 	}
 
 	private void setupGridCache() {
@@ -87,6 +97,9 @@ public class World {
 	}
 
 	public void dispose() {
+		deadLoop.dispose();
+		aliveLoop.dispose();
+		coindSound.dispose();
 		sc.dispose();
 	}
 
@@ -152,6 +165,14 @@ public class World {
 		}
 
 		setupGridCache();
+
+		if(inDeathWorld) {
+			aliveLoop.stop();
+			deadLoop.play();
+		} else {
+			deadLoop.stop();
+			aliveLoop.play();
+		}
 	}
 
 	private void fillWhitespace() {
@@ -235,6 +256,7 @@ public class World {
 			if(Intersector.overlapRectangles(coinRect, playerRect)) {
 				toDel.add(coinRect);
 				collectedAmount += COIN_VALUE;
+				coindSound.play();
 			}
 		}
 		coinRects.removeAll(toDel);
