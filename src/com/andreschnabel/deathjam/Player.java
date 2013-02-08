@@ -36,7 +36,6 @@ public class Player {
 	public Player(World world) {
 		this.world = world;
 
-		ArrayList<TextureAtlas.AtlasRegion> regions = new ArrayList<TextureAtlas.AtlasRegion>();
 		for(TextureAtlas.AtlasRegion region : Globals.atlas.getRegions()) {
 			if(region.name.matches("player\\d+"))
 				playerRegions.add(region);

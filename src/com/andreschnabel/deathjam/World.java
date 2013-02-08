@@ -34,7 +34,6 @@ public class World {
 	private List<Enemy> enemies = new ArrayList<Enemy>();
 	private AtlasRegion enemyRegion;
 
-	private float rotAlpha;
 	private List<Rectangle> coinRects = new ArrayList<Rectangle>();
 
 	private SpriteCache sc;
@@ -62,7 +61,9 @@ public class World {
 		floorRegion = Globals.atlas.findRegion("floor");
 
 		deadLoop = Gdx.audio.newMusic(Utils.assetHandle("deadloop.mp3"));
+		deadLoop.setLooping(true);
 		aliveLoop = Gdx.audio.newMusic(Utils.assetHandle("aliveloop.mp3"));
+		aliveLoop.setLooping(true);
 
 		loadFromFile("world1.txt", false);
 

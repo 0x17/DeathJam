@@ -8,16 +8,14 @@ public class Scroller {
 	private static final float SCROLL_SPEED = 8.0f;
 	private final float SCROLL_WINDOW_HORIZONTAL = Globals.VSCR_W / 2.1f;
 	private final float SCROLL_WINDOW_VERTICAL = Globals.VSCR_H / 2.1f;
-	private final World world;
 	private final Player player;
 
 	public float xOffset, yOffset;
 
 	public OrthographicCamera cam;
 
-	public Scroller(World world, Player player) {
+	public Scroller(Player player) {
 		cam = new OrthographicCamera(Globals.VSCR_W, Globals.VSCR_H);
-		this.world = world;
 		this.player = player;
 	}
 

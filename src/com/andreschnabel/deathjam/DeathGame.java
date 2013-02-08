@@ -38,7 +38,7 @@ public class DeathGame implements ApplicationListener {
 
 		world = new World();
 		player = new Player(world);
-		scroller = new Scroller(world, player);
+		scroller = new Scroller(player);
 	}
 
 	private void initBackground() {
