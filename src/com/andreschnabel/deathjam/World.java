@@ -1,6 +1,7 @@
 package com.andreschnabel.deathjam;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.SpriteCache;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
@@ -35,6 +36,8 @@ public class World {
 	private float rotAlpha;
 	private List<Rectangle> coinRects = new ArrayList<Rectangle>();
 
+	private SpriteCache sc;
+
 	public World() {
 		initCharToRegionMap();
 
@@ -47,6 +50,12 @@ public class World {
 		enemyRegion = Globals.atlas.findRegion("enemy");
 
 		loadFromFile("world1.txt");
+
+		sc = new SpriteCache();
+	}
+
+	public void dispose() {
+		sc.dispose();
 	}
 
 	private void initCharToRegionMap() {
@@ -59,11 +68,11 @@ public class World {
 		charToRegionMap.put('Y', 5);
 	}
 
-	public void loadFromFile(String fname) {
+	public void loadFromFile(String filename) {
 		coinRects.clear();
 		enemyCenters.clear();
 
-		String worldStr = Utils.assetHandle(fname).readString();
+		String worldStr = Utils.assetHandle(filename).readString();
 		String[] lines = worldStr.split("\n");
 
 		gridW = maxLineLength(lines);
@@ -72,36 +81,36 @@ public class World {
 		grid = new char[gridH][gridW];
 		fillWhitespace();
 
-		int xctr, yctr;
-		xctr = yctr = 0;
+		int xCounter, yCounter;
+		xCounter = yCounter = 0;
 		for(int j=0; j<lines.length; j++) {
 			String line = lines[j /*lines.length-j-1*/];
 
 			for(int i=0; i<line.length(); i++) {
 				char c = line.charAt(i);
 
-				int xpos, ypos;
-				xpos = xctr * TILE_W;
-				ypos = yctr * TILE_H;
+				int xPosition, yPosition;
+				xPosition = xCounter * TILE_W;
+				yPosition = yCounter * TILE_H;
 
 				if(c == 's') {
 					c = ' ';
-					playerStart.x = xpos;
-					playerStart.y = ypos;
+					playerStart.x = xPosition;
+					playerStart.y = yPosition;
 					Utils.debug("Start pos = " + playerStart);
 				} else if(c == 'c') {
 					c = ' ';
-					coinRects.add(new Rectangle(xpos, ypos, coinRegion.getRegionWidth(), coinRegion.getRegionHeight()));
+					coinRects.add(new Rectangle(xPosition, yPosition, coinRegion.getRegionWidth(), coinRegion.getRegionHeight()));
 				} else if(c == 'e') {
 					c = ' ';
-					enemyCenters.add(new Vector2(xpos, ypos));
+					enemyCenters.add(new Vector2(xPosition, yPosition));
 				}
 
-				grid[yctr][xctr] = c;
-				xctr++;
+				grid[yCounter][xCounter] = c;
+				xCounter++;
 			}
-			xctr = 0;
-			yctr++;
+			xCounter = 0;
+			yCounter++;
 		}
 	}
 
@@ -112,11 +121,11 @@ public class World {
 	}
 
 	private int maxLineLength(String[] lines) {
-		int maxlen = 0;
+		int maxLength = 0;
 		for(String line : lines) {
-			maxlen = line.length() > maxlen ? line.length() : maxlen;
+			maxLength = line.length() > maxLength ? line.length() : maxLength;
 		}
-		return maxlen;
+		return maxLength;
 	}
 
 	public void render(SpriteBatch sb) {

@@ -4,14 +4,15 @@ import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.GL10;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DeathGame implements ApplicationListener {
 	
@@ -34,15 +35,14 @@ public class DeathGame implements ApplicationListener {
 	
 	private World world;
 
-	private final float SCROLL_WINDOW = 100.0f;
+	private final float SCROLL_WINDOW_HORIZONTAL = Globals.SCR_W / 2;
+	private final float SCROLL_WINDOW_VERTICAL = Globals.SCR_H / 2;
 	private Sprite playerSpr;
+	private List<TextureRegion> playerRegions = new ArrayList<TextureRegion>();
 
 	@Override
 	public void create() {
-
 		sb = new SpriteBatch();
-
-		playerSpr = new Sprite(Globals.atlas.findRegion("player"));
 
 		initFonts();
 
@@ -50,6 +50,17 @@ public class DeathGame implements ApplicationListener {
 		Gdx.gl.glClearColor(lum, lum, lum, 1.0f);
 
 		world = new World();
+
+		initPlayer();
+	}
+
+	private void initPlayer() {
+		ArrayList<TextureAtlas.AtlasRegion> regions = new ArrayList<TextureAtlas.AtlasRegion>();
+		for(TextureAtlas.AtlasRegion region : Globals.atlas.getRegions()) {
+			if(region.name.matches("player\\d+"))
+				playerRegions.add(region);
+		}
+		playerSpr = new Sprite(playerRegions.get(0));
 		playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
 	}
 
@@ -65,6 +76,7 @@ public class DeathGame implements ApplicationListener {
 		smallFont.dispose();
 		bigFont.dispose();
 		sb.dispose();
+		world.dispose();
 		Globals.atlas.dispose();
 	}
 
@@ -87,7 +99,20 @@ public class DeathGame implements ApplicationListener {
 		inertia.x *= 0.85f;
 		inertia.y *= 0.85f;
 
-		playerSpr.setRotation(MathUtils.radiansToDegrees * MathUtils.atan2(inertia.y, inertia.x));
+		playerSpr.setRotation((float) (MathUtils.radiansToDegrees * Math.atan2(inertia.y, inertia.x)));
+
+		float maxInertia = Math.max(Math.abs(inertia.x), Math.abs(inertia.y));
+		int regionIndex;
+		if(maxInertia <= 0.01f) {
+			regionIndex = 0;
+		} else if(maxInertia <= 5.0f) {
+			regionIndex = 1;
+		} else if(maxInertia <= 15.0f) {
+			regionIndex = 2;
+		} else {
+			regionIndex = 3;
+		}
+		playerSpr.setRegion(playerRegions.get(regionIndex));
 	}
 
 	private void updatePlayerPos() {
@@ -129,25 +154,25 @@ public class DeathGame implements ApplicationListener {
 	}
 
 	private void updateScrolling() {
-		if(playerSpr.getX() <= SCROLL_WINDOW) {
+		if(playerSpr.getX() <= SCROLL_WINDOW_HORIZONTAL) {
 			float scrollSpeed = determineScrollSpeed(playerSpr.getX() >= 0);
 			world.scroll(-scrollSpeed, 0);
 			playerSpr.setX(playerSpr.getX() + scrollSpeed);
 		}
 
-		if(Globals.SCR_W - playerSpr.getX() <= SCROLL_WINDOW) {
+		if(Globals.SCR_W - playerSpr.getX() <= SCROLL_WINDOW_HORIZONTAL) {
 			float scrollSpeed = determineScrollSpeed(playerSpr.getX() + playerSpr.getWidth() < Globals.SCR_W);
 			world.scroll(scrollSpeed, 0);
 			playerSpr.setX(playerSpr.getX() - scrollSpeed);
 		}
 
-		if(Globals.SCR_H - playerSpr.getY() <= SCROLL_WINDOW) {
+		if(Globals.SCR_H - playerSpr.getY() <= SCROLL_WINDOW_VERTICAL) {
 			float scrollSpeed = determineScrollSpeed(playerSpr.getY() + playerSpr.getHeight() < Globals.SCR_H);
 			world.scroll(0, scrollSpeed);
 			playerSpr.setY(playerSpr.getY() - scrollSpeed);
 		}
 
-		if(playerSpr.getY() <= SCROLL_WINDOW) {
+		if(playerSpr.getY() <= SCROLL_WINDOW_VERTICAL) {
 			float scrollSpeed = determineScrollSpeed(playerSpr.getY() >= 0);
 			world.scroll(0, -scrollSpeed);
 			playerSpr.setY(playerSpr.getY() + scrollSpeed);
