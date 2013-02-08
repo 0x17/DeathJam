@@ -32,13 +32,20 @@ public class World {
 	private List<Vector2> enemyCenters = new ArrayList<Vector2>();
 	private AtlasRegion enemyRegion;
 
-	public World(List<AtlasRegion> tileRegions, AtlasRegion coinRegion, AtlasRegion enemyRegion) {
+	private float rotAlpha;
+	private List<Rectangle> coinRects = new ArrayList<Rectangle>();
+
+	public World() {
 		initCharToRegionMap();
 
-		this.enemyRegion = enemyRegion;
-		this.tileRegions = tileRegions;
-		this.coinRegion = coinRegion;
-		//fillRandom();
+		tileRegions = new ArrayList<AtlasRegion>();
+		for(AtlasRegion region : Globals.atlas.getRegions()) {
+			if(region.name.startsWith("tile"))
+				tileRegions.add(region);
+		}
+		coinRegion = Globals.atlas.findRegion("coin");
+		enemyRegion = Globals.atlas.findRegion("enemy");
+
 		loadFromFile("world1.txt");
 	}
 
@@ -51,31 +58,32 @@ public class World {
 		charToRegionMap.put('X', 4);
 		charToRegionMap.put('Y', 5);
 	}
-	
+
 	public void loadFromFile(String fname) {
 		coinRects.clear();
+		enemyCenters.clear();
 
 		String worldStr = Utils.assetHandle(fname).readString();
 		String[] lines = worldStr.split("\n");
-		
+
 		gridW = maxLineLength(lines);
 		gridH = lines.length;
-		
+
 		grid = new char[gridH][gridW];
 		fillWhitespace();
-		
+
 		int xctr, yctr;
 		xctr = yctr = 0;
 		for(int j=0; j<lines.length; j++) {
-			String line = lines[/*lines.length-j-1*/ j];
-			
+			String line = lines[j /*lines.length-j-1*/];
+
 			for(int i=0; i<line.length(); i++) {
 				char c = line.charAt(i);
 
 				int xpos, ypos;
 				xpos = xctr * TILE_W;
 				ypos = yctr * TILE_H;
-				
+
 				if(c == 's') {
 					c = ' ';
 					playerStart.x = xpos;
@@ -88,7 +96,7 @@ public class World {
 					c = ' ';
 					enemyCenters.add(new Vector2(xpos, ypos));
 				}
-				
+
 				grid[yctr][xctr] = c;
 				xctr++;
 			}
@@ -96,7 +104,7 @@ public class World {
 			yctr++;
 		}
 	}
-	
+
 	private void fillWhitespace() {
 		for(int y = 0; y<gridH; y++)
 			for(int x = 0; x<gridW; x++)
@@ -110,19 +118,8 @@ public class World {
 		}
 		return maxlen;
 	}
-	
-	public void printGrid() {
-		for(int y = 0; y < gridH; y++) {
-			for(int x =0; x < gridW; x++) {
-				System.out.print(grid[y][x]);
-			}
-			System.out.println();
-		}
-	}
 
-	float rotAlpha;
-	
-	public void render(SpriteBatch sb, float delta) {
+	public void render(SpriteBatch sb) {
 		for(int y=0; y<gridH; y++) {
 			for(int x=0; x<gridW; x++) {
 				char c = grid[y][x];
@@ -151,13 +148,18 @@ public class World {
 		xOffset += dx;
 		yOffset += dy;
 	}
-	
-	public boolean inTileOfType(Rectangle rect, char type) {
+
+	public Vector2[] calcCorners(Rectangle rect) {
 		Vector2[] corners = new Vector2[4];
 		corners[0] = new Vector2(rect.x, rect.y+rect.height);
 		corners[1] = new Vector2(rect.x+rect.width, rect.y+rect.height);
 		corners[2] = new Vector2(rect.x, rect.y);
 		corners[3] = new Vector2(rect.x+rect.width, rect.y);
+		return corners;
+	}
+
+	public boolean inTileOfType(Rectangle rect, char type) {
+		Vector2[] corners = calcCorners(rect);
 		for(Vector2 corner : corners) {
 			if(isOfType(corner, type))
 				return true;
@@ -170,23 +172,17 @@ public class World {
 	}
 
 	public boolean inTile(Rectangle rect) {
-		Vector2[] corners = new Vector2[4];
-		corners[0] = new Vector2(rect.x, rect.y+rect.height);
-		corners[1] = new Vector2(rect.x+rect.width, rect.y+rect.height);
-		corners[2] = new Vector2(rect.x, rect.y);
-		corners[3] = new Vector2(rect.x+rect.width, rect.y);
+		Vector2[] corners = calcCorners(rect);
 		for(Vector2 corner : corners) {
 			if(!isEmpty(corner))
 				return true;
 		}
 		return false;
 	}
-	
+
 	public boolean isEmpty(Vector2 pos) {
 		return grid[(int)(pos.y / TILE_H)][(int)(pos.x / TILE_W)] == ' ';
 	}
-
-	private List<Rectangle> coinRects = new ArrayList<Rectangle>();
 
 	public int tryCollectCoin(Rectangle playerRect) {
 		int collectedAmount = 0;

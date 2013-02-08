@@ -2,21 +2,16 @@ package com.andreschnabel.deathjam;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DeathGame implements ApplicationListener {
 	
@@ -26,175 +21,144 @@ public class DeathGame implements ApplicationListener {
 	//endregion
 	
 	//region Textures
-	private TextureAtlas atlas;
-	private AtlasRegion sprRegion, enemyRegion;
+
+	//private AtlasRegion playerRegion;
 	//endregion
 	
 	private static final float MOV_SPEED = 5.0f;
 	private static final float MAX_MOV_SPEED = 20.0f;
 	private static final float SCROLL_SPEED = 5.0f;
-	private Vector2 playerPos;
 	private Vector2 inertia = Vector2.Zero.cpy();
 	private boolean alive = true;
 	private int score = 0;
 	
 	private World world;
 
+	private final float SCROLL_WINDOW = 100.0f;
+	private Sprite playerSpr;
+
 	@Override
 	public void create() {
-		
+
 		sb = new SpriteBatch();
-		
-		initTextures();
+
+		playerSpr = new Sprite(Globals.atlas.findRegion("player"));
+
 		initFonts();
-		
-		playerPos = new Vector2(Globals.SCR_W / 2.0f, Globals.SCR_H / 2.0f);
-		
+
 		float lum = 0.3f;
 		Gdx.gl.glClearColor(lum, lum, lum, 1.0f);
-		
-		Array<AtlasRegion> regions = atlas.getRegions();
-		List<AtlasRegion> tileRegions = new ArrayList<AtlasRegion>();
-		for(AtlasRegion region : regions) {
-			if(region.name.startsWith("tile"))
-				tileRegions.add(region);
-		}
-		AtlasRegion coinRegion = atlas.findRegion("coin");
-		world = new World(tileRegions, coinRegion, enemyRegion);
-		world.printGrid();
-		playerPos.set(world.playerStart);
+
+		world = new World();
+		playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
 	}
 
-	private void initTextures() {
-		atlas = new TextureAtlas(Utils.assetHandle("atlas.pack"));
-		sprRegion = atlas.findRegion("spr");
-		enemyRegion = atlas.findRegion("enemy");
-	}
-	
 	private void initFonts() {
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Utils.assetHandle("Gentium.ttf"));
 		bigFont = generator.generateFont(30);
 		smallFont = generator.generateFont(15);
 		generator.dispose();
 	}
-	
+
 	@Override
 	public void dispose() {
 		smallFont.dispose();
 		bigFont.dispose();
 		sb.dispose();
-		atlas.dispose();
+		Globals.atlas.dispose();
 	}
-	
+
 	@Override
 	public void render() {
 		processInput();
 		update();
-		renderScene(Gdx.graphics.getDeltaTime());
+		renderScene();
 	}
 
 	private void update() {
-		if(!updatePlayerPos()) {
-			updateScrolling();
-			updateInertia();
-			score += world.tryCollectCoin(calcPlayerRect());
-		}
+		updatePlayerPos();
+		updateScrolling();
+		updateInertia();
+		score += world.tryCollectCoin(calcPlayerRect());
 	}
 
 	private void updateInertia() {
-		inertia.x *= 0.75f;
-		inertia.y *= 0.75f;
+		//float delta = Gdx.graphics.getDeltaTime();
+		inertia.x *= 0.85f;
+		inertia.y *= 0.85f;
+
+		playerSpr.setRotation(MathUtils.radiansToDegrees * MathUtils.atan2(inertia.y, inertia.x));
 	}
 
-	private boolean updatePlayerPos() {
-		playerPos.x += inertia.x;
-		playerPos.y += inertia.y;
-		
+	private void updatePlayerPos() {
+		playerSpr.setX(playerSpr.getX()+inertia.x);
+		playerSpr.setY(playerSpr.getY()+inertia.y);
+
 		Rectangle playerRect = calcPlayerRect();
 		if(playerInTile(playerRect)) {
-			playerPos.x -= inertia.x;
-			playerPos.y -= inertia.y;
+			playerSpr.setX(playerSpr.getX()-inertia.x);
+			playerSpr.setY(playerSpr.getY()-inertia.y);
 			inertia.x *= -1.5f;
 			inertia.y *= -1.5f;
-			
+
 			if(world.inTileOfType(playerRect, 'X')) {
 				alive = false;
 				world.loadFromFile("deathworld1.txt");
-				playerPos.set(world.playerStart);
-				return true;
+				playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
+				inertia.set(0.0f, 0.0f);
 			}
-			
+
 			if(world.inTileOfType(playerRect, 'Y')) {
 				alive = true;
 				world.loadFromFile("world1.txt");
-				playerPos.set(world.playerStart);
-				return true;
+				playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
+				inertia.set(0.0f, 0.0f);
 			}
 		}
-		
-		return false;
 	}
-	
-	private float determineScrollSpeed(boolean inframe) {
-		return inframe ? SCROLL_SPEED :  Math.max(-playerPos.x * SCROLL_SPEED, MAX_MOV_SPEED);
+
+	private Rectangle calcPlayerRect() {
+		Rectangle rect = playerSpr.getBoundingRectangle();
+		rect.x += world.xOffset;
+		rect.y += world.yOffset;
+		return rect;
+	}
+
+	private float determineScrollSpeed(boolean inFrame) {
+		return inFrame ? SCROLL_SPEED :  Math.max(-playerSpr.getX() * SCROLL_SPEED, MAX_MOV_SPEED);
 	}
 
 	private void updateScrolling() {
-		if(playerPos.x <= SCROLL_WINDOW) {
-			float scrollSpeed = determineScrollSpeed(playerPos.x >= 0);
+		if(playerSpr.getX() <= SCROLL_WINDOW) {
+			float scrollSpeed = determineScrollSpeed(playerSpr.getX() >= 0);
 			world.scroll(-scrollSpeed, 0);
-			playerPos.x += scrollSpeed;
+			playerSpr.setX(playerSpr.getX() + scrollSpeed);
 		}
-		
-		if(Globals.SCR_W - playerPos.x <= SCROLL_WINDOW) {
-			float scrollSpeed = determineScrollSpeed(playerPos.x + sprRegion.getRegionWidth() < Globals.SCR_W);
+
+		if(Globals.SCR_W - playerSpr.getX() <= SCROLL_WINDOW) {
+			float scrollSpeed = determineScrollSpeed(playerSpr.getX() + playerSpr.getWidth() < Globals.SCR_W);
 			world.scroll(scrollSpeed, 0);
-			playerPos.x -= scrollSpeed;
+			playerSpr.setX(playerSpr.getX() - scrollSpeed);
 		}
-		
-		if(Globals.SCR_H - playerPos.y <= SCROLL_WINDOW) {
-			float scrollSpeed = determineScrollSpeed(playerPos.y + sprRegion.getRegionHeight() < Globals.SCR_H);
+
+		if(Globals.SCR_H - playerSpr.getY() <= SCROLL_WINDOW) {
+			float scrollSpeed = determineScrollSpeed(playerSpr.getY() + playerSpr.getHeight() < Globals.SCR_H);
 			world.scroll(0, scrollSpeed);
-			playerPos.y -= scrollSpeed;
+			playerSpr.setY(playerSpr.getY() - scrollSpeed);
 		}
-		
-		if(playerPos.y <= SCROLL_WINDOW) {
-			float scrollSpeed = determineScrollSpeed(playerPos.y >= 0);
+
+		if(playerSpr.getY() <= SCROLL_WINDOW) {
+			float scrollSpeed = determineScrollSpeed(playerSpr.getY() >= 0);
 			world.scroll(0, -scrollSpeed);
-			playerPos.y += scrollSpeed;
+			playerSpr.setY(playerSpr.getY() + scrollSpeed);
 		}
 	}
 
 	private void processInput() {
-		processKeyboard();
-		processMouse();
-	}
-
-	private void processMouse() {
-		if(Gdx.input.isButtonPressed(Buttons.LEFT)) {
-			Vector2 oldPos = playerPos.cpy();
-			playerPos.x = Gdx.input.getX();
-			playerPos.y = Globals.SCR_H - Gdx.input.getY();
-			if(playerInTile(calcPlayerRect()))
-				playerPos = oldPos;
-		}
-	}
-	
-	private final float SCROLL_WINDOW = 100.0f;
-	
-	private void move(float dx, float dy) {
-		inertia.x += dx;
-		inertia.y += dy;
-		
-		if(inertia.x >= MAX_MOV_SPEED) inertia.x = MAX_MOV_SPEED;
-		if(inertia.y >= MAX_MOV_SPEED) inertia.y = MAX_MOV_SPEED;
-	}
-
-	private void processKeyboard() {
 		if(Gdx.input.isKeyPressed(Keys.ESCAPE)) {
 			Gdx.app.exit();
 		}
-		
+
 		// horizontal
 		if(Gdx.input.isKeyPressed(Keys.LEFT)) {
 			move(-MOV_SPEED, 0);
@@ -202,7 +166,7 @@ public class DeathGame implements ApplicationListener {
 		if(Gdx.input.isKeyPressed(Keys.RIGHT)) {
 			move(MOV_SPEED, 0);
 		}
-		
+
 		// vertical
 		if(Gdx.input.isKeyPressed(Keys.UP)) {
 			move(0, MOV_SPEED);
@@ -212,26 +176,25 @@ public class DeathGame implements ApplicationListener {
 		}
 	}
 
-	private Rectangle calcPlayerRect() {
-		Rectangle playerRect = new Rectangle(
-				playerPos.x+world.xOffset,
-				playerPos.y+world.yOffset,
-				sprRegion.getRegionWidth(),
-				sprRegion.getRegionHeight());
-		return playerRect;
+	private void move(float dx, float dy) {
+		inertia.x += dx;
+		inertia.y += dy;
+		
+		if(inertia.x >= MAX_MOV_SPEED) inertia.x = MAX_MOV_SPEED;
+		if(inertia.y >= MAX_MOV_SPEED) inertia.y = MAX_MOV_SPEED;
 	}
-	
+
 	private boolean playerInTile(Rectangle playerRect) {
 		return world.inTile(playerRect);
 	}
 
-	private void renderScene(float delta) {
+	private void renderScene() {
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		
 		sb.begin();
 		
-		world.render(sb, delta);
-		sb.draw(sprRegion, playerPos.x, playerPos.y);
+		world.render(sb);
+		playerSpr.draw(sb);
 		
 		String curStr = alive ? "ALIVE" : "DEAD";
 		TextBounds txtBounds = bigFont.getBounds(curStr);
@@ -252,7 +215,5 @@ public class DeathGame implements ApplicationListener {
 	@Override
 	public void resume() {
 	}
-
-	
 
 }
