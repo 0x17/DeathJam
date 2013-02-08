@@ -1,0 +1,25 @@
+DEATH GAME TODO:
+
+- Art: Head view from the top. Looks in direction of mov speed.
+
+- Fix crashes (index out of bounds)
+- Make scrolling smoother
+- Fix vertical mirroring of map and start positions
+- Enemy type 1 rotates CCW around center point. Death on touch.
+- Enemy type 2 moves between waypoints. (lerped)
+
+- Obstacle: Long post that gets long/short periodically.
+
+- Touch goal to win when alive.
+
+- On death in death world. Touch goal to revive.
+- Enemy type 1 rotates CW around center point in death world. Gameover on touch.
+
+
+- Coins at interesting positions.
+
+- Space key for shield.
+- Gamepad controls: Only analog stick. A-Button to use shield.
+- Touch controls: Touch next to player to move in that dir. Two fingers for shield.
+
+- Shield burns about amount of shield power. Regenerates slowly.
