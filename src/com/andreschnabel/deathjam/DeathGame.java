@@ -17,6 +17,7 @@ public class DeathGame implements ApplicationListener {
 	private SpriteCache backCache;
 	private int backCacheId;
 	private SpriteBatch sb, fsb;
+	private BitmapFont hugeFont;
 	private BitmapFont smallFont, bigFont;
 
 	private World world;
@@ -46,17 +47,21 @@ public class DeathGame implements ApplicationListener {
 
 		TextureRegion backRegion = Globals.atlas.findRegion("back");
 
-		for(int y=0; y<Globals.PSCR_H; y+=backRegion.getRegionWidth())
-			for(int x=0; x<Globals.PSCR_W; x+=backRegion.getRegionWidth())
-				backCache.add(backRegion, x, y);
+		float w = backRegion.getRegionWidth()*2;
+		float h = backRegion.getRegionWidth()*2;
+
+		for(int y=0; y<Globals.PSCR_H; y+=h)
+			for(int x=0; x<Globals.PSCR_W; x+=w)
+				backCache.add(backRegion, x, y, w, h);
 
 		backCacheId = backCache.endCache();
 	}
 
 	private void initFonts() {
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Utils.assetHandle("font.ttf"));
-		bigFont = generator.generateFont(30);
-		smallFont = generator.generateFont(15);
+		hugeFont = generator.generateFont(72);
+		bigFont = generator.generateFont(60);
+		smallFont = generator.generateFont(30);
 		generator.dispose();
 	}
 
@@ -64,6 +69,7 @@ public class DeathGame implements ApplicationListener {
 	public void dispose() {
 		smallFont.dispose();
 		bigFont.dispose();
+		hugeFont.dispose();
 		sb.dispose();
 		world.dispose();
 		Globals.atlas.dispose();
@@ -81,6 +87,7 @@ public class DeathGame implements ApplicationListener {
 		scroller.updateScrolling();
 		player.updateInertia();
 		scroller.updateCamera();
+		world.update();
 	}
 
 	private void processInput() {
@@ -88,15 +95,14 @@ public class DeathGame implements ApplicationListener {
 			Gdx.app.exit();
 		}
 
-		// horizontal
+		if(player.gameover) return;
+
 		if(Gdx.input.isKeyPressed(Keys.LEFT)) {
 			player.move(-1, 0);
 		}
 		if(Gdx.input.isKeyPressed(Keys.RIGHT)) {
 			player.move(1, 0);
 		}
-
-		// vertical
 		if(Gdx.input.isKeyPressed(Keys.UP)) {
 			player.move(0, 1);
 		}
@@ -129,12 +135,23 @@ public class DeathGame implements ApplicationListener {
 
 	private void renderTextOverlay() {
 		fsb.begin();
+
 		String curStr = player.alive ? "ALIVE" : "DEAD";
 		TextBounds txtBounds = bigFont.getBounds(curStr);
+
 		bigFont.setColor(Color.WHITE);
-		bigFont.draw(fsb, "Score " + player.score, 10, Globals.PSCR_H - txtBounds.height);
+		bigFont.draw(fsb, "Score " + player.score, 40, Globals.PSCR_H - txtBounds.height);
+
 		bigFont.setColor(player.alive ? Color.GREEN : Color.RED);
-		bigFont.draw(fsb, curStr, Globals.PSCR_W - txtBounds.width, txtBounds.height + 10);
+		bigFont.draw(fsb, curStr, Globals.PSCR_W - txtBounds.width, txtBounds.height + 40);
+
+		if(player.gameover) {
+			txtBounds = hugeFont.getBounds("GAME OVER!");
+			float gx = (Globals.PSCR_W - txtBounds.width) / 2.0f;
+			float gy = (Globals.PSCR_H - txtBounds.height) / 2.0f;
+			hugeFont.draw(fsb, "GAME OVER!", gx, gy);
+		}
+
 		fsb.end();
 	}
 

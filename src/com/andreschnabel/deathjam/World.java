@@ -1,5 +1,6 @@
 package com.andreschnabel.deathjam;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.SpriteCache;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
@@ -19,7 +20,6 @@ public class World {
 	private final static int TILE_W = 64;
 	private final static int TILE_H = 64;
 	private static final int COIN_VALUE = 100;
-	private static final float ENEMY_RADIUS = 64.0f;
 	private char[][] grid;
 	public int gridW;
 	public int gridH;
@@ -28,7 +28,7 @@ public class World {
 	private AtlasRegion coinRegion;
 	private HashMap<Character, Integer> charToRegionMap;
 	public Vector2 playerStart = new Vector2();
-	private List<Vector2> enemyCenters = new ArrayList<Vector2>();
+	private List<Enemy> enemies = new ArrayList<Enemy>();
 	private AtlasRegion enemyRegion;
 
 	private float rotAlpha;
@@ -39,6 +39,8 @@ public class World {
 	private final SpriteBatch sb;
 
 	private TextureRegion floorRegion;
+	private boolean inDeathWorld;
+	private Color brightRed = new Color(1.0f, 0.4f, 0.4f, 1.0f);
 
 	public World() {
 		initCharToRegionMap();
@@ -53,7 +55,7 @@ public class World {
 
 		floorRegion = Globals.atlas.findRegion("floor");
 
-		loadFromFile("world1.txt");
+		loadFromFile("world1.txt", false);
 
 		sb = new SpriteBatch();
 
@@ -63,6 +65,8 @@ public class World {
 		sc = new SpriteCache();
 
 		sc.beginCache();
+		if(inDeathWorld)
+			sc.setColor(Color.RED);
 
 		for(int y=0; y<gridH; y++) {
 			for(int x=0; x<gridW; x++) {
@@ -96,9 +100,10 @@ public class World {
 		charToRegionMap.put('Y', 5);
 	}
 
-	public void loadFromFile(String filename) {
+	public void loadFromFile(String filename, boolean deathWorld) {
+		this.inDeathWorld = deathWorld;
 		coinRects.clear();
-		enemyCenters.clear();
+		enemies.clear();
 
 		String worldStr = Utils.assetHandle(filename).readString();
 		String[] lines = worldStr.split("\n");
@@ -136,7 +141,7 @@ public class World {
 					coinRects.add(ncrect);
 				} else if(c == 'e') {
 					c = ' ';
-					enemyCenters.add(new Vector2(xPosition, yPosition));
+					enemies.add(new Enemy(xPosition, yPosition));
 				}
 
 				grid[yCounter][xCounter] = c;
@@ -163,6 +168,12 @@ public class World {
 		return maxLength;
 	}
 
+	public void update() {
+		Enemy.updateAlpha();
+		for(Enemy enemy : enemies)
+			enemy.updatePos();
+	}
+
 	public void render(Matrix4 mviewmx) {
 		sc.setTransformMatrix(mviewmx);
 		sc.begin();
@@ -171,16 +182,13 @@ public class World {
 
 		sb.setTransformMatrix(mviewmx);
 		sb.begin();
+		if(inDeathWorld) sb.setColor(brightRed);
 		for(Rectangle coinRect : coinRects) {
 			sb.draw(coinRegion, coinRect.x, coinRect.y);
 		}
 
-		rotAlpha += 0.05f; //delta * 0.01f;
-
-		for(Vector2 enemyCenter : enemyCenters) {
-			float xpos = (float) (enemyCenter.x + Math.cos(rotAlpha) * ENEMY_RADIUS);
-			float ypos = (float) (enemyCenter.y + Math.sin(rotAlpha) * ENEMY_RADIUS);
-			sb.draw(enemyRegion, xpos, ypos);
+		for(Enemy enemy : enemies) {
+			sb.draw(enemyRegion, enemy.pos.x, enemy.pos.y);
 		}
 		sb.end();
 	}
@@ -233,4 +241,7 @@ public class World {
 		return collectedAmount;
 	}
 
+	public List<Enemy> getEnemies() {
+		return enemies;
+	}
 }

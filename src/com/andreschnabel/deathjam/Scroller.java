@@ -22,9 +22,12 @@ public class Scroller {
 	}
 
 	public void updateCamera() {
-		cam.position.set(xOffset*2, yOffset*2, 0.0f);
+		float maxInertia = player.getMaxInertia();
+		float zoomFactor = 2.0f - 0.25f * (maxInertia / 20.0f);
+
+		cam.position.set(xOffset* zoomFactor, yOffset* zoomFactor, 0.0f);
 		cam.update();
-		cam.view.scale(2.0f, 2.0f, 1.0f);
+		cam.view.scale(zoomFactor, zoomFactor, 1.0f);
 	}
 
 	public void scroll(float dx, float dy) {
