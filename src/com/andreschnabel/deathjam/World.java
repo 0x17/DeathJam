@@ -3,7 +3,9 @@ package com.andreschnabel.deathjam;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.SpriteCache;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
@@ -13,8 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class World {
-	
-	//region Grid
+
 	private final static int TILE_W = 64;
 	private final static int TILE_H = 64;
 	private static final int COIN_VALUE = 100;
@@ -22,9 +23,6 @@ public class World {
 	private char[][] grid;
 	public int gridW;
 	public int gridH;
-	
-	public float xOffset, yOffset;
-	//endregion
 	
 	private List<AtlasRegion> tileRegions;
 	private AtlasRegion coinRegion;
@@ -37,6 +35,8 @@ public class World {
 	private List<Rectangle> coinRects = new ArrayList<Rectangle>();
 
 	private SpriteCache sc;
+	private int cacheId;
+	private final SpriteBatch sb;
 
 	public World() {
 		initCharToRegionMap();
@@ -51,7 +51,29 @@ public class World {
 
 		loadFromFile("world1.txt");
 
+		setupGridCache();
+
+		sb = new SpriteBatch();
+
+	}
+
+	private void setupGridCache() {
 		sc = new SpriteCache();
+
+		sc.beginCache();
+
+		for(int y=0; y<gridH; y++) {
+			for(int x=0; x<gridW; x++) {
+				char c = grid[y][x];
+				if(c != ' ') {
+					int regionIndex = charToRegionMap.get(c);
+					TextureRegion region = tileRegions.get(regionIndex);
+					sc.add(region, x * TILE_W, y * TILE_H);
+				}
+			}
+		}
+
+		cacheId = sc.endCache();
 	}
 
 	public void dispose() {
@@ -100,7 +122,12 @@ public class World {
 					Utils.debug("Start pos = " + playerStart);
 				} else if(c == 'c') {
 					c = ' ';
-					coinRects.add(new Rectangle(xPosition, yPosition, coinRegion.getRegionWidth(), coinRegion.getRegionHeight()));
+					Rectangle ncrect = new Rectangle(
+							xPosition + (TILE_W - coinRegion.getRegionWidth()) / 2.0f,
+							yPosition + (TILE_H - coinRegion.getRegionHeight()) / 2.0f,
+							coinRegion.getRegionWidth(),
+							coinRegion.getRegionHeight());
+					coinRects.add(ncrect);
 				} else if(c == 'e') {
 					c = ' ';
 					enemyCenters.add(new Vector2(xPosition, yPosition));
@@ -128,34 +155,26 @@ public class World {
 		return maxLength;
 	}
 
-	public void render(SpriteBatch sb) {
-		for(int y=0; y<gridH; y++) {
-			for(int x=0; x<gridW; x++) {
-				char c = grid[y][x];
-				if(c != ' ') {
-					int regionIndex = charToRegionMap.get(c);
-					AtlasRegion region = tileRegions.get(regionIndex);
-					sb.draw(region, x * TILE_W - xOffset, y * TILE_H - yOffset);
-				}
-			}
-		}
+	public void render(Matrix4 mviewmx) {
+		sc.setTransformMatrix(mviewmx);
+		sc.begin();
+		sc.draw(cacheId);
+		sc.end();
 
+		sb.setTransformMatrix(mviewmx);
+		sb.begin();
 		for(Rectangle coinRect : coinRects) {
-			sb.draw(coinRegion, coinRect.x - xOffset, coinRect.y - yOffset);
+			sb.draw(coinRegion, coinRect.x, coinRect.y);
 		}
 
 		rotAlpha += 0.05f; //delta * 0.01f;
 
 		for(Vector2 enemyCenter : enemyCenters) {
-			float xpos = (float) (enemyCenter.x - xOffset + Math.cos(rotAlpha) * ENEMY_RADIUS);
-			float ypos = (float) (enemyCenter.y - yOffset + Math.sin(rotAlpha) * ENEMY_RADIUS);
+			float xpos = (float) (enemyCenter.x + Math.cos(rotAlpha) * ENEMY_RADIUS);
+			float ypos = (float) (enemyCenter.y + Math.sin(rotAlpha) * ENEMY_RADIUS);
 			sb.draw(enemyRegion, xpos, ypos);
 		}
-	}
-
-	public void scroll(float dx, float dy) {
-		xOffset += dx;
-		yOffset += dy;
+		sb.end();
 	}
 
 	public Vector2[] calcCorners(Rectangle rect) {

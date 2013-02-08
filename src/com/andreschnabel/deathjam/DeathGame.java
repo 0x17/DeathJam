@@ -3,46 +3,27 @@ package com.andreschnabel.deathjam;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
-import com.badlogic.gdx.graphics.g2d.*;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DeathGame implements ApplicationListener {
-	
-	//region Rendering
-	private SpriteBatch sb;
+	private SpriteBatch sb, fsb;
 	private BitmapFont smallFont, bigFont;
-	//endregion
-	
-	//region Textures
 
-	//private AtlasRegion playerRegion;
-	//endregion
-	
-	private static final float MOV_SPEED = 5.0f;
-	private static final float MAX_MOV_SPEED = 20.0f;
-	private static final float SCROLL_SPEED = 5.0f;
-	private Vector2 inertia = Vector2.Zero.cpy();
-	private boolean alive = true;
-	private int score = 0;
-	
 	private World world;
-
-	private final float SCROLL_WINDOW_HORIZONTAL = Globals.SCR_W / 2;
-	private final float SCROLL_WINDOW_VERTICAL = Globals.SCR_H / 2;
-	private Sprite playerSpr;
-	private List<TextureRegion> playerRegions = new ArrayList<TextureRegion>();
+	private Player player;
+	private Scroller scroller;
 
 	@Override
 	public void create() {
 		sb = new SpriteBatch();
+		fsb = new SpriteBatch();
 
 		initFonts();
 
@@ -50,22 +31,12 @@ public class DeathGame implements ApplicationListener {
 		Gdx.gl.glClearColor(lum, lum, lum, 1.0f);
 
 		world = new World();
-
-		initPlayer();
-	}
-
-	private void initPlayer() {
-		ArrayList<TextureAtlas.AtlasRegion> regions = new ArrayList<TextureAtlas.AtlasRegion>();
-		for(TextureAtlas.AtlasRegion region : Globals.atlas.getRegions()) {
-			if(region.name.matches("player\\d+"))
-				playerRegions.add(region);
-		}
-		playerSpr = new Sprite(playerRegions.get(0));
-		playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
+		player = new Player(world);
+		scroller = new Scroller(world, player);
 	}
 
 	private void initFonts() {
-		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Utils.assetHandle("Gentium.ttf"));
+		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Utils.assetHandle("font.ttf"));
 		bigFont = generator.generateFont(30);
 		smallFont = generator.generateFont(15);
 		generator.dispose();
@@ -88,95 +59,10 @@ public class DeathGame implements ApplicationListener {
 	}
 
 	private void update() {
-		updatePlayerPos();
-		updateScrolling();
-		updateInertia();
-		score += world.tryCollectCoin(calcPlayerRect());
-	}
-
-	private void updateInertia() {
-		//float delta = Gdx.graphics.getDeltaTime();
-		inertia.x *= 0.85f;
-		inertia.y *= 0.85f;
-
-		playerSpr.setRotation((float) (MathUtils.radiansToDegrees * Math.atan2(inertia.y, inertia.x)));
-
-		float maxInertia = Math.max(Math.abs(inertia.x), Math.abs(inertia.y));
-		int regionIndex;
-		if(maxInertia <= 0.01f) {
-			regionIndex = 0;
-		} else if(maxInertia <= 5.0f) {
-			regionIndex = 1;
-		} else if(maxInertia <= 15.0f) {
-			regionIndex = 2;
-		} else {
-			regionIndex = 3;
-		}
-		playerSpr.setRegion(playerRegions.get(regionIndex));
-	}
-
-	private void updatePlayerPos() {
-		playerSpr.setX(playerSpr.getX()+inertia.x);
-		playerSpr.setY(playerSpr.getY()+inertia.y);
-
-		Rectangle playerRect = calcPlayerRect();
-		if(playerInTile(playerRect)) {
-			playerSpr.setX(playerSpr.getX()-inertia.x);
-			playerSpr.setY(playerSpr.getY()-inertia.y);
-			inertia.x *= -1.5f;
-			inertia.y *= -1.5f;
-
-			if(world.inTileOfType(playerRect, 'X')) {
-				alive = false;
-				world.loadFromFile("deathworld1.txt");
-				playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
-				inertia.set(0.0f, 0.0f);
-			}
-
-			if(world.inTileOfType(playerRect, 'Y')) {
-				alive = true;
-				world.loadFromFile("world1.txt");
-				playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
-				inertia.set(0.0f, 0.0f);
-			}
-		}
-	}
-
-	private Rectangle calcPlayerRect() {
-		Rectangle rect = playerSpr.getBoundingRectangle();
-		rect.x += world.xOffset;
-		rect.y += world.yOffset;
-		return rect;
-	}
-
-	private float determineScrollSpeed(boolean inFrame) {
-		return inFrame ? SCROLL_SPEED :  Math.max(-playerSpr.getX() * SCROLL_SPEED, MAX_MOV_SPEED);
-	}
-
-	private void updateScrolling() {
-		if(playerSpr.getX() <= SCROLL_WINDOW_HORIZONTAL) {
-			float scrollSpeed = determineScrollSpeed(playerSpr.getX() >= 0);
-			world.scroll(-scrollSpeed, 0);
-			playerSpr.setX(playerSpr.getX() + scrollSpeed);
-		}
-
-		if(Globals.SCR_W - playerSpr.getX() <= SCROLL_WINDOW_HORIZONTAL) {
-			float scrollSpeed = determineScrollSpeed(playerSpr.getX() + playerSpr.getWidth() < Globals.SCR_W);
-			world.scroll(scrollSpeed, 0);
-			playerSpr.setX(playerSpr.getX() - scrollSpeed);
-		}
-
-		if(Globals.SCR_H - playerSpr.getY() <= SCROLL_WINDOW_VERTICAL) {
-			float scrollSpeed = determineScrollSpeed(playerSpr.getY() + playerSpr.getHeight() < Globals.SCR_H);
-			world.scroll(0, scrollSpeed);
-			playerSpr.setY(playerSpr.getY() - scrollSpeed);
-		}
-
-		if(playerSpr.getY() <= SCROLL_WINDOW_VERTICAL) {
-			float scrollSpeed = determineScrollSpeed(playerSpr.getY() >= 0);
-			world.scroll(0, -scrollSpeed);
-			playerSpr.setY(playerSpr.getY() + scrollSpeed);
-		}
+		player.updatePlayerPos();
+		scroller.updateScrolling();
+		player.updateInertia();
+		scroller.updateCamera();
 	}
 
 	private void processInput() {
@@ -186,27 +72,19 @@ public class DeathGame implements ApplicationListener {
 
 		// horizontal
 		if(Gdx.input.isKeyPressed(Keys.LEFT)) {
-			move(-MOV_SPEED, 0);
+			player.move(-1, 0);
 		}
 		if(Gdx.input.isKeyPressed(Keys.RIGHT)) {
-			move(MOV_SPEED, 0);
+			player.move(1, 0);
 		}
 
 		// vertical
 		if(Gdx.input.isKeyPressed(Keys.UP)) {
-			move(0, MOV_SPEED);
+			player.move(0, 1);
 		}
 		if(Gdx.input.isKeyPressed(Keys.DOWN)) {
-			move(0, -MOV_SPEED);
+			player.move(0, -1);
 		}
-	}
-
-	private void move(float dx, float dy) {
-		inertia.x += dx;
-		inertia.y += dy;
-		
-		if(inertia.x >= MAX_MOV_SPEED) inertia.x = MAX_MOV_SPEED;
-		if(inertia.y >= MAX_MOV_SPEED) inertia.y = MAX_MOV_SPEED;
 	}
 
 	private boolean playerInTile(Rectangle playerRect) {
@@ -215,18 +93,24 @@ public class DeathGame implements ApplicationListener {
 
 	private void renderScene() {
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+
+		Matrix4 mviewmx = scroller.cam.view;
 		
+		world.render(mviewmx);
+
+		sb.setTransformMatrix(mviewmx);
 		sb.begin();
-		
-		world.render(sb);
-		playerSpr.draw(sb);
-		
-		String curStr = alive ? "ALIVE" : "DEAD";
-		TextBounds txtBounds = bigFont.getBounds(curStr);
-		bigFont.draw(sb, curStr, 10, Globals.SCR_H - txtBounds.height);
-		bigFont.draw(sb, "Score: " + score, txtBounds.width + 10 + 10, Globals.SCR_H - txtBounds.height);
-		 
+		player.draw(sb);
 		sb.end();
+
+		fsb.begin();
+		String curStr = player.alive ? "ALIVE" : "DEAD";
+		TextBounds txtBounds = bigFont.getBounds(curStr);
+		bigFont.setColor(Color.WHITE);
+		bigFont.draw(fsb, "Score " + player.score, 10, Globals.SCR_H - txtBounds.height);
+		bigFont.setColor(player.alive ? Color.GREEN : Color.RED);
+		bigFont.draw(fsb, curStr, Globals.SCR_W - txtBounds.width, txtBounds.height + 10);
+		fsb.end();
 	}
 
 	@Override
