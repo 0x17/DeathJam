@@ -12,7 +12,7 @@ public class Launcher {
 	}
 
 	private static void updateAtlas() {
-		final boolean FORCE_REPACK = true;
+		final boolean FORCE_REPACK = false;
 		if(FORCE_REPACK || new File("src/data/atlas.pack").lastModified() < new File("src/data/texsrc").lastModified())
 			TexturePacker2.process("src/data/texsrc", "src/data", "atlas.pack");
 	}

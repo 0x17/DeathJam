@@ -93,9 +93,12 @@ public class Player {
 				kill();
 				return;
 			}
-
-			if(world.inTileOfType(playerRect, 'Y')) {
+			else if(world.inTileOfType(playerRect, 'Y')) {
 				revive();
+				return;
+			}
+			else if(world.inTileOfType(playerRect, 'Z')) {
+				nextMap();
 				return;
 			}
 		}
@@ -112,13 +115,22 @@ public class Player {
 		}
 	}
 
+	private void nextMap() {
+		world.loadNextMap();
+		reset();
+	}
+
+	private void reset() {
+		playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
+		inertia.set(0.0f, 0.0f);
+	}
+
 	public void kill() {
 		if(alive) {
 			playerSpr.setColor(Color.RED);
 			alive = false;
-			world.loadFromFile("deathworld1.txt", true);
-			playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
-			inertia.set(0.0f, 0.0f);
+			world.loadCurDeathworld();
+			reset();
 			Utils.playSound(dwSound);
 		} else {
 			gameover = true;
@@ -128,9 +140,8 @@ public class Player {
 
 	public void revive() {
 		alive = true;
-		world.loadFromFile("world1.txt", false);
-		playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
-		inertia.set(0.0f, 0.0f);
+		world.loadCurMap();
+		reset();
 		playerSpr.setColor(Color.WHITE);
 	}
 

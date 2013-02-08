@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class World {
 
@@ -46,6 +48,7 @@ public class World {
 	private final Sound coinSnd;
 	private final Music aliveLoop;
 	private final Music deadLoop;
+	private int curWorldNum;
 
 	public World() {
 		initCharToRegionMap();
@@ -65,7 +68,8 @@ public class World {
 		aliveLoop = Gdx.audio.newMusic(Utils.assetHandle("aliveloop.mp3"));
 		aliveLoop.setLooping(true);
 
-		loadFromFile("world1.txt", false);
+		curWorldNum = 0;
+		loadNextMap();
 
 		sb = new SpriteBatch();
 
@@ -73,7 +77,7 @@ public class World {
 	}
 
 	private void setupGridCache() {
-		sc = new SpriteCache();
+		sc = new SpriteCache(4000, false);
 
 		sc.beginCache();
 		if(inDeathWorld)
@@ -116,6 +120,12 @@ public class World {
 	}
 
 	public void loadFromFile(String filename, boolean deathWorld) {
+		if(!deathWorld) {
+			Matcher m = Pattern.compile("world(\\d+).txt").matcher(filename);
+			m.find();
+			curWorldNum = Integer.valueOf(m.group(1));
+		}
+
 		this.inDeathWorld = deathWorld;
 		coinRects.clear();
 		enemies.clear();
@@ -175,6 +185,18 @@ public class World {
 			deadLoop.stop();
 			Utils.playSong(aliveLoop);
 		}
+	}
+
+	public void loadCurMap() {
+		loadFromFile(String.format("world%d.txt", curWorldNum), false);
+	}
+
+	public void loadNextMap() {
+		loadFromFile(String.format("world%d.txt", ++curWorldNum), false);
+	}
+
+	public void loadCurDeathworld() {
+		loadFromFile(String.format("deathworld%d.txt", curWorldNum), true);
 	}
 
 	private void fillWhitespace() {
