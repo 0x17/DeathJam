@@ -8,10 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.SpriteCache;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +22,8 @@ public class World {
 	private final static int TILE_W = 64;
 	private final static int TILE_H = 64;
 	private static final int COIN_VALUE = 100;
+	private static final float COIN_WOBBLE_DIST_X = 2.0f;
+	private static final float COIN_WOBBLE_DIST_Y = 4.0f;
 	private char[][] grid;
 	public int gridW;
 	public int gridH;
@@ -49,6 +48,7 @@ public class World {
 	private final Music aliveLoop;
 	private final Music deadLoop;
 	private int curWorldNum;
+	private List<CollectAnim> collectAnims = new ArrayList<CollectAnim>();
 
 	public World() {
 		initCharToRegionMap();
@@ -71,7 +71,9 @@ public class World {
 		curWorldNum = 0;
 		loadNextMap();
 
+		// currently used for drawing enemies and coins iirc
 		sb = new SpriteBatch();
+		sb.setColor(inDeathWorld ? brightRed : Color.WHITE);
 
 		coinSnd = Gdx.audio.newSound(Utils.assetHandle("coin.wav"));
 	}
@@ -129,6 +131,7 @@ public class World {
 		this.inDeathWorld = deathWorld;
 		coinRects.clear();
 		enemies.clear();
+		collectAnims.clear();
 
 		String worldStr = Utils.assetHandle(filename).readString();
 		String[] lines = worldStr.split("\n");
@@ -219,6 +222,8 @@ public class World {
 			enemy.updatePos();
 	}
 
+	private float coinAlpha = 0.0f;
+
 	public void render(Matrix4 mviewmx) {
 		sc.setTransformMatrix(mviewmx);
 		sc.begin();
@@ -227,14 +232,28 @@ public class World {
 
 		sb.setTransformMatrix(mviewmx);
 		sb.begin();
-		if(inDeathWorld) sb.setColor(brightRed);
+
+		coinAlpha += 15.0f;
+
 		for(Rectangle coinRect : coinRects) {
-			sb.draw(coinRegion, coinRect.x, coinRect.y);
+			sb.draw(coinRegion,
+					coinRect.x + MathUtils.cos(MathUtils.degreesToRadians * coinAlpha) * COIN_WOBBLE_DIST_X,
+					coinRect.y + MathUtils.sin(MathUtils.degreesToRadians * coinAlpha) * COIN_WOBBLE_DIST_Y);
 		}
 
 		for(Enemy enemy : enemies) {
 			sb.draw(enemyRegion, enemy.pos.x, enemy.pos.y);
 		}
+
+		List<CollectAnim> expiredAnims = new LinkedList<CollectAnim>();
+
+		for(CollectAnim anim : collectAnims) {
+			boolean result = anim.render(sb);
+			if(result) expiredAnims.add(anim);
+		}
+
+		collectAnims.removeAll(expiredAnims);
+
 		sb.end();
 	}
 
@@ -281,6 +300,8 @@ public class World {
 				toDel.add(coinRect);
 				collectedAmount += COIN_VALUE;
 				Utils.playSound(coinSnd);
+				Vector2 centerPos = new Vector2(coinRect.x + coinRect.width / 2.0f, coinRect.y + coinRect.height / 2.0f);
+				collectAnims.add(new CollectAnim(centerPos, coinRegion));
 			}
 		}
 		coinRects.removeAll(toDel);

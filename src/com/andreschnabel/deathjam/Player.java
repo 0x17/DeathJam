@@ -20,6 +20,8 @@ public class Player {
 	private static final float MOV_SPEED = 2f;
 	private static final float MAX_MOV_SPEED = 20.0f;
 	private static final float INERTIA_DECAY = 0.9f;
+	private static final long SHIELD_INCR_DELAY = 2000;
+	private static final long SHIELD_DECR_DELAY = 500;
 
 	public Vector2 inertia = Vector2.Zero.cpy();
 
@@ -27,12 +29,22 @@ public class Player {
 	private List<TextureRegion> playerRegions = new ArrayList<TextureRegion>();
 	private final World world;
 
+	public int hp = 100;
+	public int shield = 0;
 	public boolean alive = true;
 	public int score;
 	public boolean gameover;
+
+	private long lastShieldIncr = Utils.getTicks();
+	private long lastShieldDecr;
+
 	private final Sound dwSound;
 	private final Sound hitSound;
 	private final Sound goSound;
+
+	private final static long SHIELD_REQUEST_TIMEOUT = 350;
+	private long lastShieldRequest = Utils.getTicks();
+	private final TextureRegion shieldRegion;
 
 	public Player(World world) {
 		this.world = world;
@@ -47,6 +59,8 @@ public class Player {
 		dwSound = Gdx.audio.newSound(Utils.assetHandle("deathworld.wav"));
 		hitSound = Gdx.audio.newSound(Utils.assetHandle("hit.wav"));
 		goSound = Gdx.audio.newSound(Utils.assetHandle("gameover.wav"));
+
+		shieldRegion = Globals.atlas.findRegion("shield");
 	}
 
 	public void dispose() {
@@ -109,10 +123,32 @@ public class Player {
 
 		for(Enemy enemy : enemies) {
 			if(Intersector.overlapRectangles(playerRect, enemy.getRect())) {
-				kill();
+				if(!isShieldActive()) {
+					hp -= 35;
+					if(hp < 0) {
+						kill();
+					}
+				}
+
 				return;
 			}
 		}
+
+		if(isShieldActive()) {
+			if(Utils.getTicks() - lastShieldDecr > SHIELD_DECR_DELAY) {
+				if(shield > 0)
+					shield--;
+				lastShieldDecr = Utils.getTicks();
+			}
+		}
+		else {
+			if(Utils.getTicks() - lastShieldIncr > SHIELD_INCR_DELAY) {
+				if(shield < 100)
+					shield++;
+				lastShieldIncr = Utils.getTicks();
+			}
+		}
+
 	}
 
 	private void nextMap() {
@@ -123,6 +159,8 @@ public class Player {
 	private void reset() {
 		playerSpr.setPosition(world.playerStart.x, world.playerStart.y);
 		inertia.set(0.0f, 0.0f);
+		hp = 100;
+		shield = 0;
 	}
 
 	public void kill() {
@@ -178,5 +216,21 @@ public class Player {
 
 	public void draw(SpriteBatch sb) {
 		playerSpr.draw(sb);
+
+		if(isShieldActive()) {
+			sb.draw(shieldRegion, playerSpr.getX(), playerSpr.getY(),
+					playerSpr.getOriginX(), playerSpr.getOriginY(),
+					playerSpr.getWidth(), playerSpr.getHeight(),
+					playerSpr.getScaleX(), playerSpr.getScaleY(),
+					playerSpr.getRotation());
+		}
+	}
+
+	private boolean isShieldActive() {
+		return Utils.getTicks() - lastShieldRequest < SHIELD_REQUEST_TIMEOUT && shield > 0;
+	}
+
+	public void useShield() {
+		lastShieldRequest = Utils.getTicks();
 	}
 }

@@ -110,6 +110,10 @@ public class DeathGame implements ApplicationListener {
 		if(Gdx.input.isKeyPressed(Keys.DOWN)) {
 			player.move(0, -1);
 		}
+
+		if(Gdx.input.isKeyPressed(Keys.SPACE)) {
+			player.useShield();
+		}
 	}
 
 	private void renderScene() {
@@ -137,11 +141,24 @@ public class DeathGame implements ApplicationListener {
 	private void renderTextOverlay() {
 		fsb.begin();
 
-		String curStr = player.alive ? "ALIVE" : "DEAD";
+		String curStr;
+
+		curStr = "Score " + player.score;
 		TextBounds txtBounds = bigFont.getBounds(curStr);
 
 		bigFont.setColor(Color.WHITE);
-		bigFont.draw(fsb, "Score " + player.score, 40, Globals.PSCR_H - txtBounds.height);
+		bigFont.draw(fsb, curStr, 40, Globals.PSCR_H - txtBounds.height);
+
+		curStr = "Shield " + player.shield;
+		txtBounds = bigFont.getBounds(curStr);
+		bigFont.draw(fsb, curStr, Globals.PSCR_W - 600, Globals.PSCR_H - txtBounds.height);
+
+		curStr = "Health " + player.hp;
+		txtBounds = bigFont.getBounds(curStr);
+		bigFont.draw(fsb, curStr, Globals.PSCR_W - txtBounds.width - 100, Globals.PSCR_H - txtBounds.height);
+
+		curStr = player.alive ? "ALIVE" : "DEAD";
+		txtBounds = bigFont.getBounds(curStr);
 
 		bigFont.setColor(player.alive ? Color.GREEN : Color.RED);
 		bigFont.draw(fsb, curStr, Globals.PSCR_W - txtBounds.width, txtBounds.height + 40);

@@ -31,4 +31,8 @@ public class Utils {
 	public static void playSong(Music mus) {
 		if(!Globals.NO_SOUND) mus.play();
 	}
+
+	public static long getTicks() {
+		return System.currentTimeMillis();
+	}
 }
