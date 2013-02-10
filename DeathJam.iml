@@ -11,6 +11,7 @@
     <orderEntry type="library" name="gdx-tools" level="application" />
     <orderEntry type="library" name="gdx-freetype" level="application" />
     <orderEntry type="library" name="gdx-controllers-desktop" level="application" />
+    <orderEntry type="library" name="gdx" level="application" />
   </component>
 </module>
 

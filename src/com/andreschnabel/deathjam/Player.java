@@ -22,6 +22,7 @@ public class Player {
 	private static final float INERTIA_DECAY = 0.9f;
 	private static final long SHIELD_INCR_DELAY = 2000;
 	private static final long SHIELD_DECR_DELAY = 500;
+	private static final long MIN_HIT_DELAY = 1000;
 
 	public Vector2 inertia = Vector2.Zero.cpy();
 
@@ -36,7 +37,7 @@ public class Player {
 	public boolean gameover;
 
 	private long lastShieldIncr = Utils.getTicks();
-	private long lastShieldDecr;
+	private long lastShieldDecr = Utils.getTicks();
 
 	private final Sound dwSound;
 	private final Sound hitSound;
@@ -45,6 +46,7 @@ public class Player {
 	private final static long SHIELD_REQUEST_TIMEOUT = 350;
 	private long lastShieldRequest = Utils.getTicks();
 	private final TextureRegion shieldRegion;
+	private long lastHit = Utils.getTicks();
 
 	public Player(World world) {
 		this.world = world;
@@ -123,9 +125,11 @@ public class Player {
 
 		for(Enemy enemy : enemies) {
 			if(Intersector.overlapRectangles(playerRect, enemy.getRect())) {
-				if(!isShieldActive()) {
+				if(!isShieldActive() && Utils.getTicks() - lastHit > MIN_HIT_DELAY) {
 					hp -= 35;
+					lastHit = Utils.getTicks();
 					if(hp < 0) {
+						hp = 0;
 						kill();
 					}
 				}
@@ -171,8 +175,8 @@ public class Player {
 			reset();
 			Utils.playSound(dwSound);
 		} else {
+			if(!gameover) Utils.playSound(goSound);
 			gameover = true;
-			Utils.playSound(goSound);
 		}
 	}
 
