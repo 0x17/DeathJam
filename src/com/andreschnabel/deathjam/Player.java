@@ -91,7 +91,8 @@ public class Player {
 		rect.height *= RECT_MINIFICATION_FACTOR;
 	}
 
-	public void updatePlayerPos() {
+	// Returns true iff. switched maps
+	public boolean updatePlayerPos() {
 		playerSpr.setX(playerSpr.getX()+inertia.x);
 		playerSpr.setY(playerSpr.getY()+inertia.y);
 
@@ -107,15 +108,15 @@ public class Player {
 
 			if(world.inTileOfType(playerRect, 'X')) {
 				kill();
-				return;
+				return true;
 			}
 			else if(world.inTileOfType(playerRect, 'Y')) {
 				revive();
-				return;
+				return true;
 			}
 			else if(world.inTileOfType(playerRect, 'Z')) {
 				nextMap();
-				return;
+				return true;
 			}
 		}
 
@@ -131,10 +132,9 @@ public class Player {
 					if(hp < 0) {
 						hp = 0;
 						kill();
+						return true;
 					}
 				}
-
-				return;
 			}
 		}
 
@@ -153,6 +153,7 @@ public class Player {
 			}
 		}
 
+		return false;
 	}
 
 	private void nextMap() {

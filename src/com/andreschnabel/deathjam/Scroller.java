@@ -2,6 +2,7 @@ package com.andreschnabel.deathjam;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 
 public class Scroller {
 
@@ -17,6 +18,11 @@ public class Scroller {
 	public Scroller(Player player) {
 		cam = new OrthographicCamera(Globals.VSCR_W, Globals.VSCR_H);
 		this.player = player;
+	}
+
+	public void scrollToPos(Vector2 pos) {
+		xOffset = pos.x;
+		yOffset = pos.y;
 	}
 
 	public void updateCamera() {

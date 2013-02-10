@@ -32,6 +32,7 @@ public class World {
 	private AtlasRegion coinRegion;
 	private HashMap<Character, Integer> charToRegionMap;
 	public Vector2 playerStart = new Vector2();
+	public Vector2 scrollStart = new Vector2();
 	private List<Enemy> enemies = new ArrayList<Enemy>();
 	private AtlasRegion enemyRegion;
 
@@ -154,22 +155,31 @@ public class World {
 				xPosition = xCounter * TILE_W;
 				yPosition = yCounter * TILE_H;
 
-				if(c == 's') {
-					c = ' ';
-					playerStart.x = xPosition;
-					playerStart.y = yPosition;
-					Utils.debug("Start pos = " + playerStart);
-				} else if(c == 'c') {
-					c = ' ';
-					Rectangle ncrect = new Rectangle(
-							xPosition + (TILE_W - coinRegion.getRegionWidth()) / 2.0f,
-							yPosition + (TILE_H - coinRegion.getRegionHeight()) / 2.0f,
-							coinRegion.getRegionWidth(),
-							coinRegion.getRegionHeight());
-					coinRects.add(ncrect);
-				} else if(c == 'e') {
-					c = ' ';
-					enemies.add(new Enemy(xPosition, yPosition));
+				switch(c) {
+					case 's':
+						c = ' ';
+						playerStart.x = xPosition;
+						playerStart.y = yPosition;
+						scrollStart.x = xPosition - Globals.VSCR_W / 2.0f;
+						scrollStart.y = yPosition - Globals.VSCR_H / 2.0f;
+						break;
+					case 'c':
+						c = ' ';
+						Rectangle ncrect = new Rectangle(
+								xPosition + (TILE_W - coinRegion.getRegionWidth()) / 2.0f,
+								yPosition + (TILE_H - coinRegion.getRegionHeight()) / 2.0f,
+								coinRegion.getRegionWidth(),
+								coinRegion.getRegionHeight());
+						coinRects.add(ncrect);
+						break;
+					case 'e':
+						c = ' ';
+						enemies.add(new Enemy(xPosition, yPosition));
+						break;
+					case 'Z': // TODO: Idea show goal first and scroll back to player using reverse A* path
+						//scrollStart.x = xPosition - Globals.VSCR_W / 2.0f;
+						//scrollStart.y = yPosition - Globals.VSCR_H / 2.0f;
+						break;
 				}
 
 				grid[yCounter][xCounter] = c;

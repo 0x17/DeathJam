@@ -39,6 +39,8 @@ public class DeathGame implements ApplicationListener {
 		world = new World();
 		player = new Player(world);
 		scroller = new Scroller(player);
+
+		scroller.scrollToPos(world.scrollStart);
 	}
 
 	private void initBackground() {
@@ -84,7 +86,9 @@ public class DeathGame implements ApplicationListener {
 	}
 
 	private void update() {
-		player.updatePlayerPos();
+		if(player.updatePlayerPos()) {
+			scroller.scrollToPos(world.scrollStart);
+		}
 		scroller.updateScrolling();
 		player.updateInertia();
 		scroller.updateCamera();
