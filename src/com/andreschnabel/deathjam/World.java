@@ -70,11 +70,11 @@ public class World {
 		aliveLoop.setLooping(true);
 
 		curWorldNum = 0;
-		loadNextMap();
 
 		// currently used for drawing enemies and coins iirc
 		sb = new SpriteBatch();
-		sb.setColor(inDeathWorld ? brightRed : Color.WHITE);
+
+		loadNextMap();
 
 		coinSnd = Gdx.audio.newSound(Utils.assetHandle("coin.wav"));
 	}
@@ -136,6 +136,8 @@ public class World {
 		}
 
 		this.inDeathWorld = deathWorld;
+		sb.setColor(inDeathWorld ? brightRed : Color.WHITE);
+
 		coinRects.clear();
 		enemies.clear();
 		collectAnims.clear();

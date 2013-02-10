@@ -20,7 +20,7 @@ public class Player {
 	private static final float MOV_SPEED = 2f;
 	private static final float MAX_MOV_SPEED = 20.0f;
 	private static final float INERTIA_DECAY = 0.9f;
-	private static final long SHIELD_INCR_DELAY = 2000;
+	private static final long SHIELD_INCR_DELAY = 1000;
 	private static final long SHIELD_DECR_DELAY = 500;
 	private static final long MIN_HIT_DELAY = 1000;
 
