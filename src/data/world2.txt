@@ -10,7 +10,7 @@
 #   c   #                         #  c    X   e       #
 #   c   #                         #  c           ccc  #
 #   e   #              ####       #  c    AAA c       #
-#   c   ## ######     #  c #      #  cccc   A         #
+#   c   #########     #  c #      #  cccc   A         #
 #   ccc          #####   c  #     #   CC    A     X   #
 ###          c     X    cc   ######         Ae        #
    #  X   e Bc c                       X    A        #
