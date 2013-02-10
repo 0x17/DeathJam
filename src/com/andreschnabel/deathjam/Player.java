@@ -107,8 +107,7 @@ public class Player {
 			Utils.playSound(hitSound);
 
 			if(world.inTileOfType(playerRect, 'X') && !isShieldActive()) {
-				kill();
-				return true;
+				return kill();
 			}
 			else if(world.inTileOfType(playerRect, 'Y')) {
 				revive();
@@ -131,8 +130,7 @@ public class Player {
 					lastHit = Utils.getTicks();
 					if(hp < 0) {
 						hp = 0;
-						kill();
-						return true;
+						return kill();
 					}
 				}
 			}
@@ -168,16 +166,18 @@ public class Player {
 		shield = 0;
 	}
 
-	public void kill() {
+	public boolean kill() {
 		if(alive) {
 			playerSpr.setColor(Color.RED);
 			alive = false;
 			world.loadCurDeathworld();
 			reset();
 			Utils.playSound(dwSound);
+			return true;
 		} else {
 			if(!gameover) Utils.playSound(goSound);
 			gameover = true;
+			return false;
 		}
 	}
 
