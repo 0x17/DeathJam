@@ -106,7 +106,7 @@ public class Player {
 			inertia.y *= -0.7f;
 			Utils.playSound(hitSound);
 
-			if(world.inTileOfType(playerRect, 'X')) {
+			if(world.inTileOfType(playerRect, 'X') && !isShieldActive()) {
 				kill();
 				return true;
 			}

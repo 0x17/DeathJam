@@ -79,12 +79,18 @@ public class World {
 		coinSnd = Gdx.audio.newSound(Utils.assetHandle("coin.wav"));
 	}
 
+
 	private void setupGridCache() {
 		sc = new SpriteCache(4000, false);
 
 		sc.beginCache();
 		if(inDeathWorld)
 			sc.setColor(Color.RED);
+
+		FloodFill ff = new FloodFill(grid, gridW, gridH);
+		int startX = (int) (playerStart.x / TILE_W);
+		int startY = (int) (playerStart.y / TILE_H);
+		int[][] state = ff.fillFromPos(startX, startY);
 
 		for(int y=0; y<gridH; y++) {
 			for(int x=0; x<gridW; x++) {
@@ -95,7 +101,7 @@ public class World {
 					int regionIndex = charToRegionMap.get(c);
 					TextureRegion region = tileRegions.get(regionIndex);
 					sc.add(region, xpos, ypos);
-				} else {
+				} else if(state[y][x] == FloodFill.INSIDE) {
 					sc.add(floorRegion, xpos, ypos);
 				}
 			}
