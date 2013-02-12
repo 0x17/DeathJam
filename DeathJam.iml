@@ -7,11 +7,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="libgdx-0.9" level="application" />
     <orderEntry type="library" name="gdx-tools" level="application" />
     <orderEntry type="library" name="gdx-freetype" level="application" />
-    <orderEntry type="library" name="gdx-controllers-desktop" level="application" />
     <orderEntry type="library" name="gdx" level="application" />
+    <orderEntry type="library" name="gdx-controllers" level="application" />
   </component>
 </module>
 

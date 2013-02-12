@@ -3,6 +3,8 @@ package com.andreschnabel.deathjam;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.controllers.Controller;
+import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -117,6 +119,19 @@ public class DeathGame implements ApplicationListener {
 
 		if(Gdx.input.isKeyPressed(Keys.SPACE)) {
 			player.useShield();
+		}
+
+		for(Controller controller : Controllers.getControllers()) {
+			final float MOV_THRESHOLD = 0.25f;
+			float xaxis = controller.getAxis(1);
+			float yaxis = -controller.getAxis(0);
+			if(Math.abs(xaxis) < MOV_THRESHOLD) xaxis = 0f;
+			if(Math.abs(yaxis) < MOV_THRESHOLD) yaxis = 0f;
+			player.move(xaxis, 0);
+			player.move(0, yaxis);
+
+			if(controller.getButton(0))
+				player.useShield();
 		}
 	}
 
