@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.SpriteCache;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Matrix4;
 
 public class DeathGame implements ApplicationListener {
@@ -20,7 +19,7 @@ public class DeathGame implements ApplicationListener {
 	private int backCacheId;
 	private SpriteBatch sb, fsb;
 	private BitmapFont hugeFont;
-	private BitmapFont smallFont, bigFont;
+	private BitmapFont bigFont;
 
 	private World world;
 	private Player player;
@@ -62,16 +61,18 @@ public class DeathGame implements ApplicationListener {
 	}
 
 	private void initFonts() {
-		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Utils.assetHandle("font.ttf"));
+		/*FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Utils.assetHandle("font.ttf"));
 		hugeFont = generator.generateFont(72);
 		bigFont = generator.generateFont(60);
 		smallFont = generator.generateFont(30);
-		generator.dispose();
+		generator.dispose();*/
+
+		bigFont = new BitmapFont(Utils.assetHandle("bigfont.fnt"), false);
+		hugeFont = new BitmapFont(Utils.assetHandle("hugefont.fnt"), false);
 	}
 
 	@Override
 	public void dispose() {
-		smallFont.dispose();
 		bigFont.dispose();
 		hugeFont.dispose();
 		sb.dispose();
