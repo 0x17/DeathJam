@@ -46,7 +46,10 @@ public class Player {
 	private final static long SHIELD_REQUEST_TIMEOUT = 350;
 	private long lastShieldRequest = Utils.getTicks();
 	private final TextureRegion shieldRegion;
+
 	private long lastHit = Utils.getTicks();
+
+	private boolean resolvedColl;
 
 	public Player(World world) {
 		this.world = world;
@@ -93,18 +96,31 @@ public class Player {
 
 	// Returns true iff. switched maps
 	public boolean updatePlayerPos() {
-		playerSpr.setX(playerSpr.getX()+inertia.x);
-		playerSpr.setY(playerSpr.getY()+inertia.y);
+		Rectangle rectX = new Rectangle(playerSpr.getX() + inertia.x, playerSpr.getY(), playerSpr.getWidth(), playerSpr.getHeight());
+		minificateRect(rectX);
+		Rectangle rectY = new Rectangle(playerSpr.getX(), playerSpr.getY() + inertia.y, playerSpr.getWidth(), playerSpr.getHeight());
+		minificateRect(rectY);
+
+		playerSpr.setX(playerSpr.getX() + inertia.x);
+		playerSpr.setY(playerSpr.getY() + inertia.y);
 
 		Rectangle playerRect = playerSpr.getBoundingRectangle();
 		minificateRect(playerRect);
 
 		if(world.inTile(playerRect)) {
-			playerSpr.setX(playerSpr.getX()-inertia.x);
-			playerSpr.setY(playerSpr.getY() - inertia.y);
-			inertia.x *= -0.7f;
-			inertia.y *= -0.7f;
-			Utils.playSound(hitSound);
+
+			if(world.inTile(rectX)) {
+				playerSpr.setX(playerSpr.getX() - inertia.x);
+			}
+
+			if(world.inTile(rectY)) {
+				playerSpr.setY(playerSpr.getY() - inertia.y);
+			}
+
+			if(resolvedColl) {
+				Utils.playSound(hitSound);
+				resolvedColl = false;
+			}
 
 			if(world.inTileOfType(playerRect, 'X') && !isShieldActive()) {
 				return kill();
@@ -117,6 +133,8 @@ public class Player {
 				nextMap();
 				return true;
 			}
+		} else {
+			resolvedColl = true;
 		}
 
 		List<Enemy> enemies = world.getEnemies();
