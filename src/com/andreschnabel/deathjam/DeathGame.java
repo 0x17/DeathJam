@@ -104,6 +104,11 @@ public class DeathGame implements ApplicationListener {
 
 		if(player.gameover) return;
 
+		processKeyboard();
+		processGamepad();
+	}
+
+	private void processKeyboard() {
 		if(Gdx.input.isKeyPressed(Keys.LEFT)) {
 			player.move(-1, 0);
 		}
@@ -120,7 +125,9 @@ public class DeathGame implements ApplicationListener {
 		if(Gdx.input.isKeyPressed(Keys.SPACE)) {
 			player.useShield();
 		}
+	}
 
+	private void processGamepad() {
 		for(Controller controller : Controllers.getControllers()) {
 			final float MOV_THRESHOLD = 0.25f;
 			float xaxis = controller.getAxis(1);

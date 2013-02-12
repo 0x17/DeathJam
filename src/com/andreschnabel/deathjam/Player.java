@@ -23,6 +23,7 @@ public class Player {
 	private static final long SHIELD_INCR_DELAY = 1000;
 	private static final long SHIELD_DECR_DELAY = 500;
 	private static final long MIN_HIT_DELAY = 1000;
+	private static final long OVERHP_DECR_DELAY = 1000;
 
 	public Vector2 inertia = Vector2.Zero.cpy();
 
@@ -231,6 +232,19 @@ public class Player {
 		playerSpr.setRegion(playerRegions.get(regionIndex));
 
 		score += world.tryCollectCoin(playerSpr.getBoundingRectangle());
+		hp += world.tryCollectMedpack(playerSpr.getBoundingRectangle());
+
+		updateHp();
+	}
+
+	private long lastHpDecr = Utils.getTicks();
+
+
+	private void updateHp() {
+		if(hp > 100 && Utils.getTicks() - lastHpDecr > OVERHP_DECR_DELAY) {
+			hp--;
+			lastHpDecr = Utils.getTicks();
+		}
 	}
 
 	public Rectangle getRect() {

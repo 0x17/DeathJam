@@ -10,10 +10,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,32 +21,36 @@ public class World {
 	private static final int COIN_VALUE = 100;
 	private static final float COIN_WOBBLE_DIST_X = 2.0f;
 	private static final float COIN_WOBBLE_DIST_Y = 4.0f;
+	private static final int MEDPACK_VALUE = 50;
 	private char[][] grid;
 	public int gridW;
 	public int gridH;
 	
 	private List<AtlasRegion> tileRegions;
-	private AtlasRegion coinRegion;
+	private final TextureRegion coinRegion;
 	private HashMap<Character, Integer> charToRegionMap;
 	public Vector2 playerStart = new Vector2();
 	public Vector2 scrollStart = new Vector2();
-	private List<Enemy> enemies = new ArrayList<Enemy>();
-	private AtlasRegion enemyRegion;
+	private final List<Enemy> enemies = new ArrayList<Enemy>();
+	private final TextureRegion enemyRegion;
 
-	private List<Rectangle> coinRects = new ArrayList<Rectangle>();
+	private final List<Rectangle> coinRects = new ArrayList<Rectangle>();
 
 	private SpriteCache sc;
 	private int cacheId;
 	private final SpriteBatch sb;
 
-	private TextureRegion floorRegion;
+	private final TextureRegion floorRegion;
+	private final TextureRegion medpackRegion;
+
 	private boolean inDeathWorld;
-	private Color brightRed = new Color(1.0f, 0.4f, 0.4f, 1.0f);
+	private final Color brightRed = new Color(1.0f, 0.4f, 0.4f, 1.0f);
 	private final Sound coinSnd;
 	private final Music aliveLoop;
 	private final Music deadLoop;
 	private int curWorldNum;
-	private List<CollectAnim> collectAnims = new ArrayList<CollectAnim>();
+	private final List<CollectAnim> collectAnims = new ArrayList<CollectAnim>();
+	private final List<Vector2> medpackPositions = new ArrayList<Vector2>();
 
 	public World() {
 		initCharToRegionMap();
@@ -63,6 +64,8 @@ public class World {
 		enemyRegion = Globals.atlas.findRegion("enemy");
 
 		floorRegion = Globals.atlas.findRegion("floor");
+
+		medpackRegion = Globals.atlas.findRegion("medpack");
 
 		deadLoop = Gdx.audio.newMusic(Utils.assetHandle("deadloop.mp3"));
 		deadLoop.setLooping(true);
@@ -141,6 +144,7 @@ public class World {
 		coinRects.clear();
 		enemies.clear();
 		collectAnims.clear();
+		medpackPositions.clear();
 
 		String worldStr = Utils.assetHandle(filename).readString();
 		String[] lines = worldStr.split("\n");
@@ -187,6 +191,10 @@ public class World {
 					case 'Z': // TODO: Idea show goal first and scroll back to player using reverse A* path
 						//scrollStart.x = xPosition - Globals.VSCR_W / 2.0f;
 						//scrollStart.y = yPosition - Globals.VSCR_H / 2.0f;
+						break;
+					case 'm':
+						c = ' ';
+						medpackPositions.add(new Vector2(xPosition, yPosition));
 						break;
 				}
 
@@ -272,6 +280,10 @@ public class World {
 
 		collectAnims.removeAll(expiredAnims);
 
+		for(Vector2 mpPos : medpackPositions) {
+			sb.draw(medpackRegion, mpPos.x, mpPos.y);
+		}
+
 		sb.end();
 	}
 
@@ -323,6 +335,24 @@ public class World {
 			}
 		}
 		coinRects.removeAll(toDel);
+		return collectedAmount;
+	}
+
+	public int tryCollectMedpack(Rectangle playerRect) {
+		int collectedAmount = 0;
+		Rectangle rect = new Rectangle(0, 0, TILE_W, TILE_H);
+		List<Vector2> toDel = new LinkedList<Vector2>();
+		for(Vector2 mpPos : medpackPositions) {
+			rect.x = mpPos.x;
+			rect.y = mpPos.y;
+			if(Intersector.overlapRectangles(rect, playerRect)) {
+				collectedAmount += MEDPACK_VALUE;
+				if(collectedAmount > 200) collectedAmount = 200;
+				toDel.add(mpPos);
+				collectAnims.add(new CollectAnim(mpPos, medpackRegion));
+			}
+		}
+		medpackPositions.removeAll(toDel);
 		return collectedAmount;
 	}
 

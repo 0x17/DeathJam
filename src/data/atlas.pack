@@ -17,51 +17,58 @@ floor
   orig: 64, 64
   offset: 0, 0
   index: -1
-tile1
+medpack
   rotate: false
   xy: 133, 43
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
-tile2
+tile1
   rotate: false
   xy: 199, 43
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
-tile3
+tile2
   rotate: false
   xy: 265, 43
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
-tile4
+tile3
   rotate: false
   xy: 331, 43
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
-tile5
+tile4
   rotate: false
   xy: 397, 43
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
-tile6
+tile5
   rotate: false
   xy: 463, 43
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
-tile7
+tile6
   rotate: false
   xy: 529, 43
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+tile7
+  rotate: false
+  xy: 595, 43
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -75,7 +82,7 @@ player1
   index: -1
 player2
   rotate: false
-  xy: 595, 67
+  xy: 661, 67
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
@@ -89,7 +96,7 @@ player3
   index: -1
 player4
   rotate: false
-  xy: 637, 67
+  xy: 703, 67
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
@@ -103,7 +110,7 @@ shield
   index: -1
 coin
   rotate: false
-  xy: 679, 75
+  xy: 745, 75
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
