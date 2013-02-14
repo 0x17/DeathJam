@@ -16,8 +16,8 @@ public class Launcher {
 		config.height = Globals.PSCR_H;
 		config.title = "DEATH";
 		config.resizable = false;
+		config.vSyncEnabled = true;
 		new LwjglApplication(new DeathGame(), config);
-		//new LwjglApplication(new DeathGame(), "DEATH", Globals.PSCR_W, Globals.PSCR_H, false);
 	}
 
 	private static void updateAtlas() {
